@@ -110,7 +110,6 @@ const ProfitLossTracker = () => {
   // Calculates profitability metrics
   const calculateMetrics = useCallback(() => {
     // Only calculate if not loading and initial data is present
-    // Removed products.length > 0 from condition because we might have sales/purchases without products loaded yet
     if (loading) { // Wait until loading is complete
       return;
     }
@@ -155,7 +154,6 @@ const ProfitLossTracker = () => {
     } else if (netProfit > 0) {
       profitGrowth = 100; // If previous was 0 and current is positive, consider it 100% growth
     }
-
 
     setProfitData({ totalRevenue, totalCost, grossProfit, expenses, netProfit, profitMargin, profitGrowth });
     calculateProductProfitability(filteredSales, filteredPurchases);
@@ -207,7 +205,6 @@ const ProfitLossTracker = () => {
   const calculateMonthlyTrends = useCallback(() => {
     const monthlyData = {};
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    // const now = new Date(); // Not directly used in key generation or filtering here
 
     // Process sales for monthly revenue
     sales.forEach(sale => {
@@ -268,7 +265,7 @@ const ProfitLossTracker = () => {
     if (!loading) { // Only attempt calculation when not actively loading
       calculateMetrics();
     }
-  }, [selectedPeriod, sales, purchases, products, loading, calculateMetrics]); // Add calculateMetrics as dependency
+  }, [selectedPeriod, sales, purchases, products, loading, calculateMetrics]);
 
   // Handles exporting the report as a JSON file
   const handleExportReport = () => {
@@ -294,8 +291,8 @@ const ProfitLossTracker = () => {
     return (
       <div className="flex items-center justify-center min-h-screen bg-background">
         <div className="text-center">
-          <Loader2 className="w-12 h-12 animate-spin mx-auto mb-4 text-primary" />
-          <p className="text-muted-foreground">Loading profit & loss data...</p>
+          <Loader2 className="w-10 h-10 sm:w-12 sm:h-12 animate-spin mx-auto mb-4 text-primary" />
+          <p className="text-sm sm:text-base text-muted-foreground">Loading profit & loss data...</p>
         </div>
       </div>
     );
@@ -305,15 +302,15 @@ const ProfitLossTracker = () => {
   if (error) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-background">
-        <Card className="w-full max-w-md">
+        <Card className="w-full max-w-[90vw] sm:max-w-md">
           <CardHeader>
             <div className="flex items-center gap-2">
-              <AlertCircle className="w-5 h-5 text-red-500" />
-              <CardTitle>Error Loading Data</CardTitle>
+              <AlertCircle className="w-5 h-5 sm:w-6 sm:h-6 text-red-500" />
+              <CardTitle className="text-lg sm:text-xl">Error Loading Data</CardTitle>
             </div>
           </CardHeader>
           <CardContent>
-            <p className="text-muted-foreground mb-4">{error}</p>
+            <p className="text-sm sm:text-base text-muted-foreground mb-4">{error}</p>
             <Button onClick={fetchAllData} className="w-full">Retry</Button>
           </CardContent>
         </Card>
@@ -323,15 +320,18 @@ const ProfitLossTracker = () => {
 
   // Main component UI
   return (
-    <div className="space-y-6 p-6 bg-background min-h-screen">
-      <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+    <div className="space-y-6 p-4 sm:p-6 lg:p-8 bg-background min-h-screen max-w-7xl mx-auto">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-bold">Profit & Loss Tracker</h2>
-          <p className="text-muted-foreground">Real-time profitability analysis and reporting</p>
+          <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-800 flex items-center gap-2">
+            <DollarSign className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600" />
+            Profit & Loss Tracker
+          </h2>
+          <p className="text-sm sm:text-base text-muted-foreground">Real-time profitability analysis and reporting</p>
         </div>
-        <div className="flex gap-2 w-full md:w-auto">
+        <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
           <Select value={selectedPeriod} onValueChange={setSelectedPeriod}>
-            <SelectTrigger className="w-full md:w-40">
+            <SelectTrigger className="w-full sm:w-40 text-sm sm:text-base">
               <SelectValue placeholder="Select period" />
             </SelectTrigger>
             <SelectContent>
@@ -342,96 +342,96 @@ const ProfitLossTracker = () => {
               <SelectItem value="all">All Time</SelectItem>
             </SelectContent>
           </Select>
-          <Button variant="outline" onClick={handleExportReport} className="w-full md:w-auto">
-            <Download className="w-4 h-4 mr-2" />
+          <Button variant="outline" onClick={handleExportReport} className="w-full sm:w-auto flex items-center gap-2">
+            <Download className="w-4 h-4 sm:w-5 sm:h-5" />
             Export Report
           </Button>
         </div>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <Card className="bg-white shadow">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
+            <DollarSign className="h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">৳{profitData.totalRevenue.toLocaleString(undefined, { maximumFractionDigits: 0 })}</div>
+            <div className="text-xl sm:text-2xl font-bold">৳{profitData.totalRevenue.toLocaleString(undefined, { maximumFractionDigits: 0 })}</div>
             <p className="text-xs text-muted-foreground">from sales data</p>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="bg-white shadow">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Cost</CardTitle>
-            <Package className="h-4 w-4 text-muted-foreground" />
+            <Package className="h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">৳{profitData.totalCost.toLocaleString(undefined, { maximumFractionDigits: 0 })}</div>
+            <div className="text-xl sm:text-2xl font-bold">৳{profitData.totalCost.toLocaleString(undefined, { maximumFractionDigits: 0 })}</div>
             <p className="text-xs text-muted-foreground">from purchases</p>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="bg-white shadow">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Net Profit</CardTitle>
-            {profitData.netProfit >= 0 ? <TrendingUp className="h-4 w-4 text-green-600" /> : <TrendingDown className="h-4 w-4 text-red-600" />}
+            {profitData.netProfit >= 0 ? <TrendingUp className="h-4 w-4 sm:h-5 sm:w-5 text-green-600" /> : <TrendingDown className="h-4 w-4 sm:h-5 sm:w-5 text-red-600" />}
           </CardHeader>
           <CardContent>
-            <div className={`text-2xl font-bold ${profitData.netProfit >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+            <div className={`text-xl sm:text-2xl font-bold ${profitData.netProfit >= 0 ? 'text-green-600' : 'text-red-600'}`}>
               ৳{profitData.netProfit.toLocaleString(undefined, { maximumFractionDigits: 0 })}
             </div>
-            <div className={`flex items-center text-xs ${profitData.profitGrowth >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+            <div className={`flex items-center text-xs sm:text-sm ${profitData.profitGrowth >= 0 ? 'text-green-600' : 'text-red-600'}`}>
               {profitData.profitGrowth >= 0 ? '+' : ''}{profitData.profitGrowth.toFixed(1)}% vs last month
             </div>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="bg-white shadow">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Profit Margin</CardTitle>
-            <Target className="h-4 w-4 text-muted-foreground" />
+            <Target className="h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{profitData.profitMargin.toFixed(1)}%</div>
+            <div className="text-xl sm:text-2xl font-bold">{profitData.profitMargin.toFixed(1)}%</div>
             <p className="text-xs text-muted-foreground">calculated margin</p>
           </CardContent>
         </Card>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2">
-        <Card>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <Card className="bg-white shadow">
           <CardHeader>
-            <CardTitle>Profit Breakdown</CardTitle>
-            <CardDescription>Detailed profit analysis for {selectedPeriod.replace('-', ' ')}</CardDescription>
+            <CardTitle className="text-lg sm:text-xl">Profit Breakdown</CardTitle>
+            <CardDescription className="text-sm sm:text-base">Detailed profit analysis for {selectedPeriod.replace('-', ' ')}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-3">
               <div className="flex justify-between items-center">
-                <span className="text-sm font-medium">Total Revenue</span>
-                <span className="text-sm font-bold">৳{profitData.totalRevenue.toLocaleString(undefined, { maximumFractionDigits: 0 })}</span>
+                <span className="text-sm sm:text-base font-medium">Total Revenue</span>
+                <span className="text-sm sm:text-base font-bold">৳{profitData.totalRevenue.toLocaleString(undefined, { maximumFractionDigits: 0 })}</span>
               </div>
               <div className="flex justify-between items-center text-red-600">
-                <span className="text-sm">Cost of Goods Sold</span>
-                <span className="text-sm">-৳{profitData.totalCost.toLocaleString(undefined, { maximumFractionDigits: 0 })}</span>
+                <span className="text-sm sm:text-base">Cost of Goods Sold</span>
+                <span className="text-sm sm:text-base">−৳{profitData.totalCost.toLocaleString(undefined, { maximumFractionDigits: 0 })}</span>
               </div>
               <div className="border-t pt-2 flex justify-between items-center">
-                <span className="text-sm font-medium">Gross Profit</span>
-                <span className="text-sm font-bold text-green-600">৳{profitData.grossProfit.toLocaleString(undefined, { maximumFractionDigits: 0 })}</span>
+                <span className="text-sm sm:text-base font-medium">Gross Profit</span>
+                <span className="text-sm sm:text-base font-bold text-green-600">৳{profitData.grossProfit.toLocaleString(undefined, { maximumFractionDigits: 0 })}</span>
               </div>
               <div className="flex justify-between items-center text-red-600">
-                <span className="text-sm">Operating Expenses (10%)</span>
-                <span className="text-sm">-৳{profitData.expenses.toLocaleString(undefined, { maximumFractionDigits: 0 })}</span>
+                <span className="text-sm sm:text-base">Operating Expenses (10%)</span>
+                <span className="text-sm sm:text-base">−৳{profitData.expenses.toLocaleString(undefined, { maximumFractionDigits: 0 })}</span>
               </div>
               <div className="border-t pt-2 flex justify-between items-center">
-                <span className="font-medium">Net Profit</span>
-                <span className={`font-bold text-lg ${profitData.netProfit >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                <span className="text-base sm:text-lg font-medium">Net Profit</span>
+                <span className={`text-base sm:text-lg font-bold ${profitData.netProfit >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                   ৳{profitData.netProfit.toLocaleString(undefined, { maximumFractionDigits: 0 })}
                 </span>
               </div>
             </div>
             <div className="space-y-2">
-              <div className="flex justify-between text-sm">
+              <div className="flex justify-between text-sm sm:text-base">
                 <span>Profit Margin</span>
                 <span>{profitData.profitMargin.toFixed(1)}%</span>
               </div>
@@ -444,10 +444,10 @@ const ProfitLossTracker = () => {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="bg-white shadow">
           <CardHeader>
-            <CardTitle>Monthly Profit Trends</CardTitle>
-            <CardDescription>Last {monthlyProfits.length} months performance</CardDescription>
+            <CardTitle className="text-lg sm:text-xl">Monthly Profit Trends</CardTitle>
+            <CardDescription className="text-sm sm:text-base">Last {monthlyProfits.length} months performance</CardDescription>
           </CardHeader>
           <CardContent>
             {monthlyProfits.length > 0 ? (
@@ -455,10 +455,10 @@ const ProfitLossTracker = () => {
                 {monthlyProfits.map((month, index) => (
                   <div key={index} className="space-y-2">
                     <div className="flex justify-between items-center">
-                      <span className="text-sm font-medium">{month.month}</span>
-                      <span className="text-sm font-bold">৳{month.profit.toLocaleString(undefined, { maximumFractionDigits: 0 })}</span>
+                      <span className="text-sm sm:text-base font-medium">{month.month}</span>
+                      <span className="text-sm sm:text-base font-bold">৳{month.profit.toLocaleString(undefined, { maximumFractionDigits: 0 })}</span>
                     </div>
-                    <div className="flex justify-between text-xs text-muted-foreground">
+                    <div className="flex justify-between text-xs sm:text-sm text-muted-foreground">
                       <span>Revenue: ৳{month.revenue.toLocaleString(undefined, { maximumFractionDigits: 0 })}</span>
                       <span>Margin: {month.margin.toFixed(1)}%</span>
                     </div>
@@ -471,16 +471,16 @@ const ProfitLossTracker = () => {
                 ))}
               </div>
             ) : (
-              <p className="text-sm text-muted-foreground text-center py-4">No monthly data available</p>
+              <p className="text-sm sm:text-base text-muted-foreground text-center py-4">No monthly data available</p>
             )}
           </CardContent>
         </Card>
       </div>
 
-      <Card>
+      <Card className="bg-white shadow">
         <CardHeader>
-          <CardTitle>Product Profitability Analysis</CardTitle>
-          <CardDescription>Profit analysis by product ({productProfitability.length} products displayed)</CardDescription>
+          <CardTitle className="text-lg sm:text-xl">Product Profitability Analysis</CardTitle>
+          <CardDescription className="text-sm sm:text-base">Profit analysis by product ({productProfitability.length} products displayed)</CardDescription>
         </CardHeader>
         <CardContent>
           {productProfitability.length > 0 ? (
@@ -488,38 +488,38 @@ const ProfitLossTracker = () => {
               <table className="min-w-full divide-y divide-border">
                 <thead>
                   <tr className="bg-muted/50">
-                    <th className="text-left p-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">Product</th>
-                    <th className="text-left p-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">Units</th>
-                    <th className="text-left p-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">Revenue</th>
-                    <th className="text-left p-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">Cost</th>
-                    <th className="text-left p-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">Profit</th>
-                    <th className="text-left p-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">Margin</th>
-                    <th className="text-left p-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">Performance</th>
+                    <th className="text-left p-3 text-xs sm:text-sm font-medium text-muted-foreground uppercase tracking-wider">Product</th>
+                    <th className="text-left p-3 text-xs sm:text-sm font-medium text-muted-foreground uppercase tracking-wider">Units</th>
+                    <th className="text-left p-3 text-xs sm:text-sm font-medium text-muted-foreground uppercase tracking-wider">Revenue</th>
+                    <th className="text-left p-3 text-xs sm:text-sm font-medium text-muted-foreground uppercase tracking-wider">Cost</th>
+                    <th className="text-left p-3 text-xs sm:text-sm font-medium text-muted-foreground uppercase tracking-wider">Profit</th>
+                    <th className="text-left p-3 text-xs sm:text-sm font-medium text-muted-foreground uppercase tracking-wider">Margin</th>
+                    <th className="text-left p-3 text-xs sm:text-sm font-medium text-muted-foreground uppercase tracking-wider">Performance</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
                   {productProfitability.map((product, index) => (
                     <tr key={index} className="hover:bg-muted/50">
-                      <td className="p-3 font-medium">{product.product}</td>
-                      <td className="p-3">{product.unitsSold}</td>
-                      <td className="p-3">৳{product.revenue.toLocaleString(undefined, { maximumFractionDigits: 0 })}</td>
-                      <td className="p-3">৳{product.cost.toLocaleString(undefined, { maximumFractionDigits: 0 })}</td>
-                      <td className={`p-3 font-medium ${product.profit >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                      <td className="p-3 text-xs sm:text-sm font-medium">{product.product}</td>
+                      <td className="p-3 text-xs sm:text-sm">{product.unitsSold}</td>
+                      <td className="p-3 text-xs sm:text-sm">৳{product.revenue.toLocaleString(undefined, { maximumFractionDigits: 0 })}</td>
+                      <td className="p-3 text-xs sm:text-sm">৳{product.cost.toLocaleString(undefined, { maximumFractionDigits: 0 })}</td>
+                      <td className={`p-3 text-xs sm:text-sm font-medium ${product.profit >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                         ৳{product.profit.toLocaleString(undefined, { maximumFractionDigits: 0 })}
                       </td>
-                      <td className="p-3">
+                      <td className="p-3 text-xs sm:text-sm">
                         <Badge variant={product.margin > 30 ? 'default' : product.margin > 15 ? 'secondary' : 'destructive'}>
                           {product.margin.toFixed(1)}%
                         </Badge>
                       </td>
-                      <td className="p-3">
+                      <td className="p-3 text-xs sm:text-sm">
                         <div className="flex items-center gap-2">
                           <Progress
                             value={Math.min((Math.abs(product.profit) / Math.max(1, ...productProfitability.map(p => Math.abs(p.profit)))) * 100, 100)}
                             indicatorColor={product.profit >= 0 ? 'bg-green-500' : 'bg-red-500'}
-                            className="w-16 h-2"
+                            className="w-12 sm:w-16 h-2"
                           />
-                          <span className={`text-xs ${product.margin > 30 ? 'text-green-600' : product.margin > 15 ? 'text-yellow-600' : 'text-red-600'}`}>
+                          <span className={`text-xs sm:text-sm ${product.margin > 30 ? 'text-green-600' : product.margin > 15 ? 'text-yellow-600' : 'text-red-600'}`}>
                             {product.margin > 30 ? 'Excellent' : product.margin > 15 ? 'Good' : 'Low'}
                           </span>
                         </div>
@@ -530,7 +530,7 @@ const ProfitLossTracker = () => {
               </table>
             </div>
           ) : (
-            <p className="text-sm text-muted-foreground text-center py-8">No product data available for the selected period</p>
+            <p className="text-sm sm:text-base text-muted-foreground text-center py-8">No product data available for the selected period</p>
           )}
         </CardContent>
       </Card>

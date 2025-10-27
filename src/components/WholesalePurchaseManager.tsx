@@ -88,7 +88,7 @@ const WholesalePurchaseManager = () => {
   const authHeaders = {
     headers: {
       Authorization: AUTH_TOKEN,
-      "Content-Type": "application/json", // Use application/json for POST/PUT if not FormData
+      "Content-Type": "application/json",
       Accept: "application/json",
     },
   };
@@ -150,7 +150,6 @@ const WholesalePurchaseManager = () => {
     formData.append("purchase_date", newPurchase.purchase_date);
 
     try {
-      // API example explicitly uses form-data for POST
       await axios.post(`${API_BASE_URL}wholesalepurchases/`, formData, authHeadersFormData);
       setNewPurchase({
         product: "",
@@ -160,7 +159,7 @@ const WholesalePurchaseManager = () => {
         purchase_date: "",
       });
       setIsCreateDialogOpen(false);
-      fetchData(); // Re-fetch data to update the list
+      fetchData();
     } catch (error) {
       console.error("Error creating wholesale purchase:", error);
       if (axios.isAxiosError(error) && error.response) {
@@ -173,7 +172,6 @@ const WholesalePurchaseManager = () => {
     if (!editPurchase) return;
 
     const formData = new FormData();
-    // Assuming product and vendor are always numbers when editing since they were selected from dropdowns
     formData.append("product", String(typeof editPurchase.product === "object" ? editPurchase.product.id : editPurchase.product));
     formData.append("vendor", String(typeof editPurchase.vendor === "object" ? editPurchase.vendor.id : editPurchase.vendor));
     formData.append("quantity", String(editPurchase.quantity));
@@ -181,10 +179,9 @@ const WholesalePurchaseManager = () => {
     formData.append("purchase_date", editPurchase.purchase_date);
 
     try {
-      // API example explicitly uses form-data for PUT
       await axios.put(`${API_BASE_URL}wholesalepurchases/${editPurchase.id}/`, formData, authHeadersFormData);
       setIsEditDialogOpen(false);
-      fetchData(); // Re-fetch data to update the list
+      fetchData();
     } catch (error) {
       console.error("Error updating wholesale purchase:", error);
       if (axios.isAxiosError(error) && error.response) {
@@ -197,7 +194,7 @@ const WholesalePurchaseManager = () => {
     if (!window.confirm("Are you sure you want to delete this wholesale purchase?")) return;
     try {
       await axios.delete(`${API_BASE_URL}wholesalepurchases/${purchaseId}/`, authHeaders);
-      fetchData(); // Re-fetch data to update the list
+      fetchData();
     } catch (error) {
       console.error("Error deleting wholesale purchase:", error);
     }
@@ -255,92 +252,167 @@ const WholesalePurchaseManager = () => {
     }
   }
 
-
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="space-y-6 p-4 sm:p-6 lg:p-8 bg-gray-50 min-h-screen max-w-7xl mx-auto">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-bold">Wholesale Purchase Management</h2>
-          <p className="text-muted-foreground">Manage and record wholesale purchases</p>
+          <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-800 flex items-center gap-2">
+            <PlusCircle className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600" />
+            Wholesale Purchase Management
+          </h2>
+          <p className="text-sm sm:text-base text-muted-foreground">Manage and record wholesale purchases</p>
         </div>
         <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-          <DialogTrigger asChild><Button><PlusCircle className="w-4 h-4 mr-2" />Create Wholesale Purchase</Button></DialogTrigger>
-          <DialogContent className="sm:max-w-[425px]">
-            <DialogHeader><DialogTitle>Create New Wholesale Purchase</DialogTitle><DialogDescription>Add a new wholesale purchase record.</DialogDescription></DialogHeader>
+          <DialogTrigger asChild>
+            <Button className="w-full sm:w-auto flex items-center gap-2">
+              <PlusCircle className="w-4 h-4 sm:w-5 sm:h-5" />
+              Create Wholesale Purchase
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="w-full max-w-[90vw] sm:max-w-[425px]">
+            <DialogHeader>
+              <DialogTitle className="text-lg sm:text-xl">Create New Wholesale Purchase</DialogTitle>
+              <DialogDescription className="text-sm sm:text-base">Add a new wholesale purchase record.</DialogDescription>
+            </DialogHeader>
             <div className="grid gap-4 py-4">
-              <div className="space-y-2"><Label htmlFor="product">Product</Label>
+              <div className="space-y-2">
+                <Label htmlFor="product" className="text-sm sm:text-base">Product</Label>
                 <Select value={newPurchase.product} onValueChange={(value) => setNewPurchase({ ...newPurchase, product: value })}>
-                  <SelectTrigger><SelectValue placeholder="Select product" /></SelectTrigger>
+                  <SelectTrigger className="text-sm sm:text-base"><SelectValue placeholder="Select product" /></SelectTrigger>
                   <SelectContent>{products.map((product) => (<SelectItem key={product.id} value={product.id.toString()}>{product.name}</SelectItem>))}</SelectContent>
                 </Select>
               </div>
-              <div className="space-y-2"><Label htmlFor="vendor">Vendor</Label>
+              <div className="space-y-2">
+                <Label htmlFor="vendor" className="text-sm sm:text-base">Vendor</Label>
                 <Select value={newPurchase.vendor} onValueChange={(value) => setNewPurchase({ ...newPurchase, vendor: value })}>
-                  <SelectTrigger><SelectValue placeholder="Select vendor" /></SelectTrigger>
+                  <SelectTrigger className="text-sm sm:text-base"><SelectValue placeholder="Select vendor" /></SelectTrigger>
                   <SelectContent>{vendors.map((vendor) => (<SelectItem key={vendor.id} value={vendor.id.toString()}>{vendor.name}</SelectItem>))}</SelectContent>
                 </Select>
               </div>
-              <div className="space-y-2"><Label htmlFor="quantity">Quantity</Label><Input id="quantity" type="number" value={newPurchase.quantity} onChange={(e) => setNewPurchase({ ...newPurchase, quantity: e.target.value })} /></div>
-              <div className="space-y-2"><Label htmlFor="cost_per_unit">Cost per unit</Label><Input id="cost_per_unit" type="number" step="0.01" value={newPurchase.cost_per_unit} onChange={(e) => setNewPurchase({ ...newPurchase, cost_per_unit: e.target.value })} /></div>
               <div className="space-y-2">
-                <Label htmlFor="purchase_date">Purchase date</Label>
-                <div className="flex gap-2">
-                  <Input id="purchase_date" type="date" value={newPurchase.purchase_date} onChange={(e) => setNewPurchase({ ...newPurchase, purchase_date: e.target.value })} />
-                  <Button variant="outline" onClick={setPurchaseDateToToday}>Today</Button>
+                <Label htmlFor="quantity" className="text-sm sm:text-base">Quantity</Label>
+                <Input id="quantity" type="number" value={newPurchase.quantity} onChange={(e) => setNewPurchase({ ...newPurchase, quantity: e.target.value })} className="text-sm sm:text-base" />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="cost_per_unit" className="text-sm sm:text-base">Cost per unit</Label>
+                <Input id="cost_per_unit" type="number" step="0.01" value={newPurchase.cost_per_unit} onChange={(e) => setNewPurchase({ ...newPurchase, cost_per_unit: e.target.value })} className="text-sm sm:text-base" />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="purchase_date" className="text-sm sm:text-base">Purchase date</Label>
+                <div className="flex flex-col sm:flex-row gap-2">
+                  <Input id="purchase_date" type="date" value={newPurchase.purchase_date} onChange={(e) => setNewPurchase({ ...newPurchase, purchase_date: e.target.value })} className="text-sm sm:text-base" />
+                  <Button variant="outline" onClick={setPurchaseDateToToday} className="w-full sm:w-auto">Today</Button>
                 </div>
               </div>
             </div>
-            <DialogFooter><Button type="submit" onClick={handleAddPurchase}>Create Purchase</Button></DialogFooter>
+            <DialogFooter className="flex flex-col sm:flex-row gap-2">
+              <Button variant="outline" onClick={() => setIsCreateDialogOpen(false)} className="w-full sm:w-auto">Cancel</Button>
+              <Button type="submit" onClick={handleAddPurchase} className="w-full sm:w-auto">Create Purchase</Button>
+            </DialogFooter>
           </DialogContent>
         </Dialog>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-3">
-        <Card><CardHeader><CardTitle className="text-sm font-medium">Total Purchases</CardTitle></CardHeader><CardContent><div className="text-2xl font-bold">{totalPurchases}</div></CardContent></Card>
-        <Card><CardHeader><CardTitle className="text-sm font-medium">Average Purchase Cost (per purchase)</CardTitle></CardHeader><CardContent><div className="text-2xl font-bold">৳{averagePurchaseCost.toFixed(2)}</div></CardContent></Card>
-        <Card><CardHeader><CardTitle className="text-sm font-medium">Most Purchased Item</CardTitle></CardHeader><CardContent><div className="text-lg font-bold">{mostPurchasedItem}</div></CardContent></Card>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <Card className="bg-white shadow">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium">Total Purchases</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-xl sm:text-2xl font-bold">{totalPurchases}</div>
+          </CardContent>
+        </Card>
+        <Card className="bg-white shadow">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium">Average Purchase Cost (per purchase)</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-xl sm:text-2xl font-bold">৳{averagePurchaseCost.toFixed(2)}</div>
+          </CardContent>
+        </Card>
+        <Card className="bg-white shadow">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium">Most Purchased Item</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-base sm:text-lg font-bold">{mostPurchasedItem}</div>
+          </CardContent>
+        </Card>
       </div>
 
-      <Card>
-        <CardHeader><CardTitle>Wholesale Purchase List</CardTitle><CardDescription>Manage all wholesale purchases</CardDescription></CardHeader>
+      <Card className="bg-white shadow">
+        <CardHeader>
+          <CardTitle className="text-lg sm:text-xl">Wholesale Purchase List</CardTitle>
+          <CardDescription className="text-sm sm:text-base">Manage all wholesale purchases</CardDescription>
+        </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader><TableRow><TableHead>ID</TableHead><TableHead>Product</TableHead><TableHead>Vendor</TableHead><TableHead>Quantity</TableHead><TableHead>Cost/Unit</TableHead><TableHead>Total Cost</TableHead><TableHead>Purchase Date</TableHead><TableHead>Actions</TableHead></TableRow></TableHeader>
-            <TableBody>
-              {isLoading ? (
-                <TableRow><TableCell colSpan={8} className="text-center">Loading purchases...</TableCell></TableRow>
-              ) : purchases.length > 0 ? (
-                purchases.map((purchase) => (
-                  <TableRow key={purchase.id}>
-                    <TableCell className="font-medium">{purchase.id}</TableCell>
-                    <TableCell>{getProductName(purchase.product)}</TableCell>
-                    <TableCell>{getVendorName(purchase.vendor)}</TableCell>
-                    <TableCell>{purchase.quantity}</TableCell>
-                    <TableCell>৳{parseFloat(purchase.cost_per_unit).toFixed(2)}</TableCell>
-                    <TableCell>৳{(parseFloat(purchase.cost_per_unit) * purchase.quantity).toFixed(2)}</TableCell>
-                    <TableCell>{new Date(purchase.purchase_date).toLocaleDateString()}</TableCell>
-                    <TableCell className="flex gap-1">
-                      <Button size="sm" variant="outline" onClick={() => handleViewPurchase(purchase)}><Eye className="w-3 h-3" /></Button>
-                      <Button size="sm" variant="outline" onClick={() => { setEditPurchase(purchase); setIsEditDialogOpen(true); }}><Edit className="w-3 h-3" /></Button>
-                      <Button size="sm" variant="destructive" onClick={() => handleDeletePurchase(purchase.id)}><Trash2 className="w-3 h-3" /></Button>
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="text-xs sm:text-sm">ID</TableHead>
+                  <TableHead className="text-xs sm:text-sm">Product</TableHead>
+                  <TableHead className="text-xs sm:text-sm">Vendor</TableHead>
+                  <TableHead className="text-xs sm:text-sm">Quantity</TableHead>
+                  <TableHead className="text-xs sm:text-sm">Cost/Unit</TableHead>
+                  <TableHead className="text-xs sm:text-sm">Total Cost</TableHead>
+                  <TableHead className="text-xs sm:text-sm">Purchase Date</TableHead>
+                  <TableHead className="text-xs sm:text-sm text-right">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {isLoading ? (
+                  <TableRow>
+                    <TableCell colSpan={8} className="text-center text-xs sm:text-sm">
+                      Loading purchases...
                     </TableCell>
                   </TableRow>
-                ))
-              ) : (
-                <TableRow><TableCell colSpan={8} className="text-center">No wholesale purchases found.</TableCell></TableRow>
-              )}
-            </TableBody>
-          </Table>
+                ) : purchases.length > 0 ? (
+                  purchases.map((purchase) => (
+                    <TableRow key={purchase.id}>
+                      <TableCell className="font-medium text-xs sm:text-sm">{purchase.id}</TableCell>
+                      <TableCell className="text-xs sm:text-sm">{getProductName(purchase.product)}</TableCell>
+                      <TableCell className="text-xs sm:text-sm">{getVendorName(purchase.vendor)}</TableCell>
+                      <TableCell className="text-xs sm:text-sm">{purchase.quantity}</TableCell>
+                      <TableCell className="text-xs sm:text-sm">৳{parseFloat(purchase.cost_per_unit).toFixed(2)}</TableCell>
+                      <TableCell className="text-xs sm:text-sm">৳{(parseFloat(purchase.cost_per_unit) * purchase.quantity).toFixed(2)}</TableCell>
+                      <TableCell className="text-xs sm:text-sm">{new Date(purchase.purchase_date).toLocaleDateString()}</TableCell>
+                      <TableCell className="flex gap-1 justify-end">
+                        <Button size="icon" variant="outline" onClick={() => handleViewPurchase(purchase)}>
+                          <Eye className="w-3 h-3 sm:w-4 sm:h-4" />
+                        </Button>
+                        <Button size="icon" variant="outline" onClick={() => { setEditPurchase(purchase); setIsEditDialogOpen(true); }}>
+                          <Edit className="w-3 h-3 sm:w-4 sm:h-4" />
+                        </Button>
+                        <Button size="icon" variant="destructive" onClick={() => handleDeletePurchase(purchase.id)}>
+                          <Trash2 className="w-3 h-3 sm:w-4 sm:h-4" />
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell colSpan={8} className="text-center text-xs sm:text-sm">
+                      No wholesale purchases found.
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </div>
         </CardContent>
       </Card>
 
       {/* View Purchase Dialog */}
       <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
-        <DialogContent>
-          <DialogHeader><DialogTitle>Wholesale Purchase Details</DialogTitle><DialogDescription>Details of the wholesale purchase</DialogDescription></DialogHeader>
+        <DialogContent className="w-full max-w-[90vw] sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle className="text-lg sm:text-xl">Wholesale Purchase Details</DialogTitle>
+            <DialogDescription className="text-sm sm:text-base">Details of the wholesale purchase</DialogDescription>
+          </DialogHeader>
           <div className="py-4">
             {viewPurchase ? (
-              <div className="space-y-2 text-sm">
+              <div className="space-y-2 text-sm sm:text-base">
                 <div><strong>ID:</strong> {viewPurchase.id}</div>
                 <div><strong>Product:</strong> {getProductName(viewPurchase.product)}</div>
                 <div><strong>Vendor:</strong> {getVendorName(viewPurchase.vendor)}</div>
@@ -350,49 +422,65 @@ const WholesalePurchaseManager = () => {
                 <div><strong>Purchase Date:</strong> {new Date(viewPurchase.purchase_date).toLocaleDateString()}</div>
               </div>
             ) : (
-              <div>No details available</div>
+              <div className="text-sm sm:text-base">No details available</div>
             )}
           </div>
-          <DialogFooter><Button variant="outline" onClick={() => setIsViewDialogOpen(false)}>Close</Button></DialogFooter>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsViewDialogOpen(false)} className="w-full sm:w-auto">Close</Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
 
       {/* Edit Purchase Dialog */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="sm:max-w-[425px]">
-          <DialogHeader><DialogTitle>Edit Wholesale Purchase</DialogTitle><DialogDescription>Update the wholesale purchase details.</DialogDescription></DialogHeader>
+        <DialogContent className="w-full max-w-[90vw] sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle className="text-lg sm:text-xl">Edit Wholesale Purchase</DialogTitle>
+            <DialogDescription className="text-sm sm:text-base">Update the wholesale purchase details.</DialogDescription>
+          </DialogHeader>
           {editPurchase && (
             <div className="grid gap-4 py-4">
-              <div className="space-y-2"><Label htmlFor="edit-product">Product</Label>
+              <div className="space-y-2">
+                <Label htmlFor="edit-product" className="text-sm sm:text-base">Product</Label>
                 <Select
                   value={String(typeof editPurchase.product === "object" ? editPurchase.product.id : editPurchase.product)}
                   onValueChange={(value) => setEditPurchase({ ...editPurchase, product: parseInt(value) })}
                 >
-                  <SelectTrigger><SelectValue placeholder="Select product" /></SelectTrigger>
+                  <SelectTrigger className="text-sm sm:text-base"><SelectValue placeholder="Select product" /></SelectTrigger>
                   <SelectContent>{products.map((product) => (<SelectItem key={product.id} value={product.id.toString()}>{product.name}</SelectItem>))}</SelectContent>
                 </Select>
               </div>
-              <div className="space-y-2"><Label htmlFor="edit-vendor">Vendor</Label>
+              <div className="space-y-2">
+                <Label htmlFor="edit-vendor" className="text-sm sm:text-base">Vendor</Label>
                 <Select
                   value={String(typeof editPurchase.vendor === "object" ? editPurchase.vendor.id : editPurchase.vendor)}
                   onValueChange={(value) => setEditPurchase({ ...editPurchase, vendor: parseInt(value) })}
                 >
-                  <SelectTrigger><SelectValue placeholder="Select vendor" /></SelectTrigger>
+                  <SelectTrigger className="text-sm sm:text-base"><SelectValue placeholder="Select vendor" /></SelectTrigger>
                   <SelectContent>{vendors.map((vendor) => (<SelectItem key={vendor.id} value={vendor.id.toString()}>{vendor.name}</SelectItem>))}</SelectContent>
                 </Select>
               </div>
-              <div className="space-y-2"><Label htmlFor="edit-quantity">Quantity</Label><Input id="edit-quantity" type="number" value={editPurchase.quantity} onChange={(e) => setEditPurchase({ ...editPurchase, quantity: parseInt(e.target.value) || 0 })} /></div>
-              <div className="space-y-2"><Label htmlFor="edit-cost_per_unit">Cost per unit</Label><Input id="edit-cost_per_unit" type="number" step="0.01" value={editPurchase.cost_per_unit} onChange={(e) => setEditPurchase({ ...editPurchase, cost_per_unit: e.target.value })} /></div>
               <div className="space-y-2">
-                <Label htmlFor="edit-purchase_date">Purchase date</Label>
-                <div className="flex gap-2">
-                  <Input id="edit-purchase_date" type="date" value={editPurchase.purchase_date} onChange={(e) => setEditPurchase({ ...editPurchase, purchase_date: e.target.value })} />
-                  <Button variant="outline" onClick={setEditPurchaseDateToToday}>Today</Button>
+                <Label htmlFor="edit-quantity" className="text-sm sm:text-base">Quantity</Label>
+                <Input id="edit-quantity" type="number" value={editPurchase.quantity} onChange={(e) => setEditPurchase({ ...editPurchase, quantity: parseInt(e.target.value) || 0 })} className="text-sm sm:text-base" />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit-cost_per_unit" className="text-sm sm:text-base">Cost per unit</Label>
+                <Input id="edit-cost_per_unit" type="number" step="0.01" value={editPurchase.cost_per_unit} onChange={(e) => setEditPurchase({ ...editPurchase, cost_per_unit: e.target.value })} className="text-sm sm:text-base" />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit-purchase_date" className="text-sm sm:text-base">Purchase date</Label>
+                <div className="flex flex-col sm:flex-row gap-2">
+                  <Input id="edit-purchase_date" type="date" value={editPurchase.purchase_date} onChange={(e) => setEditPurchase({ ...editPurchase, purchase_date: e.target.value })} className="text-sm sm:text-base" />
+                  <Button variant="outline" onClick={setEditPurchaseDateToToday} className="w-full sm:w-auto">Today</Button>
                 </div>
               </div>
             </div>
           )}
-          <DialogFooter><Button type="submit" onClick={handleUpdatePurchase}>Update Purchase</Button></DialogFooter>
+          <DialogFooter className="flex flex-col sm:flex-row gap-2">
+            <Button variant="outline" onClick={() => setIsEditDialogOpen(false)} className="w-full sm:w-auto">Cancel</Button>
+            <Button type="submit" onClick={handleUpdatePurchase} className="w-full sm:w-auto">Update Purchase</Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>

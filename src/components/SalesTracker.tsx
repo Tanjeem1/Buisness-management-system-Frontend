@@ -188,7 +188,6 @@ const SalesTracker = () => {
     }
   };
 
-  // ✅ Fixed Update Function
   const handleUpdateSale = async () => {
     if (!editSale) return;
 
@@ -331,7 +330,7 @@ const SalesTracker = () => {
     setIsEditDialogOpen(true);
   };
 
-  // ✅ Fixed Today's Sales and Average Sale Calculations
+  // Today's Sales and Average Sale Calculations
   const todaysSales = sales
     .filter((sale) => {
       const saleDate = new Date(sale.sale_date || "");
@@ -371,38 +370,41 @@ const SalesTracker = () => {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="space-y-6 p-4 sm:p-6 lg:p-8 bg-gray-50 min-h-screen max-w-7xl mx-auto">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-bold">Sales Tracking</h2>
-          <p className="text-muted-foreground">
+          <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-800 flex items-center gap-2">
+            <PlusCircle className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600" />
+            Sales Tracking
+          </h2>
+          <p className="text-sm sm:text-base text-muted-foreground">
             Monitor and record daily sales transactions
           </p>
         </div>
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
-            <Button>
-              <PlusCircle className="w-4 h-4 mr-2" />
+            <Button className="w-full sm:w-auto flex items-center gap-2">
+              <PlusCircle className="w-4 h-4 sm:w-5 sm:h-5" />
               Record Sale
             </Button>
           </DialogTrigger>
-          <DialogContent className="sm:max-w-[425px]">
+          <DialogContent className="w-full max-w-[90vw] sm:max-w-[425px]">
             <DialogHeader>
-              <DialogTitle>Record New Sale</DialogTitle>
-              <DialogDescription>
+              <DialogTitle className="text-lg sm:text-xl">Record New Sale</DialogTitle>
+              <DialogDescription className="text-sm sm:text-base">
                 Add a new sale transaction to track inventory and revenue.
               </DialogDescription>
             </DialogHeader>
-            <div className="grid gap-4 py-4">
+            <div className="grid gap-4 py-4 overflow-y-auto max-h-[60vh]">
               <div className="space-y-2">
-                <Label htmlFor="customer">Customer</Label>
+                <Label htmlFor="customer" className="text-sm sm:text-base">Customer</Label>
                 <Select
                   value={newSale.customerId}
                   onValueChange={(value) =>
                     setNewSale((prev) => ({ ...prev, customerId: value }))
                   }
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="text-sm sm:text-base">
                     <SelectValue placeholder="Select customer" />
                   </SelectTrigger>
                   <SelectContent>
@@ -418,14 +420,14 @@ const SalesTracker = () => {
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="product">Product</Label>
+                <Label htmlFor="product" className="text-sm sm:text-base">Product</Label>
                 <Select
                   value={newSale.productId}
                   onValueChange={(value) =>
                     setNewSale((prev) => ({ ...prev, productId: value }))
                   }
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="text-sm sm:text-base">
                     <SelectValue placeholder="Select product" />
                   </SelectTrigger>
                   <SelectContent>
@@ -434,15 +436,14 @@ const SalesTracker = () => {
                         key={product.id}
                         value={product.id.toString()}
                       >
-                        {product.name} - ৳{product.retail_price || product.price} (Stock:{" "}
-                        {product.stock_quantity})
+                        {product.name} - ৳{product.retail_price || product.price} (Stock: {product.stock_quantity})
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="quantity">Quantity</Label>
+                <Label htmlFor="quantity" className="text-sm sm:text-base">Quantity</Label>
                 <Input
                   id="quantity"
                   type="number"
@@ -454,24 +455,26 @@ const SalesTracker = () => {
                       quantity: e.target.value,
                     }))
                   }
+                  className="text-sm sm:text-base"
                 />
               </div>
               <div className="space-y-2">
-                <Label>Price</Label>
+                <Label className="text-sm sm:text-base">Price</Label>
                 <Input
                   value={(parseFloat(getSelectedProduct(newSale.productId)?.retail_price || getSelectedProduct(newSale.productId)?.price || '0') || 0).toFixed(2)}
                   readOnly
+                  className="text-sm sm:text-base"
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="status">Status</Label>
+                <Label htmlFor="status" className="text-sm sm:text-base">Status</Label>
                 <Select
                   value={newSale.status}
                   onValueChange={(value) =>
                     setNewSale((prev) => ({ ...prev, status: value }))
                   }
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="text-sm sm:text-base">
                     <SelectValue placeholder="Select status" />
                   </SelectTrigger>
                   <SelectContent>
@@ -482,195 +485,182 @@ const SalesTracker = () => {
                 </Select>
               </div>
               <div className="flex justify-end items-center gap-2 pt-4 border-t">
-                <span className="text-lg font-semibold">Total:</span>
-                <span className="text-2xl font-bold">৳{calculateTotal(newSale.quantity, newSale.productId).toFixed(2)}</span>
+                <span className="text-sm sm:text-base font-semibold">Total:</span>
+                <span className="text-lg sm:text-xl font-bold">৳{calculateTotal(newSale.quantity, newSale.productId).toFixed(2)}</span>
               </div>
             </div>
-            <DialogFooter>
-              <Button type="submit" onClick={handleAddSale}>
-                Record Sale
-              </Button>
+            <DialogFooter className="flex flex-col sm:flex-row gap-2">
+              <Button variant="outline" onClick={() => setIsDialogOpen(false)} className="w-full sm:w-auto">Cancel</Button>
+              <Button type="submit" onClick={handleAddSale} className="w-full sm:w-auto">Record Sale</Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
       </div>
 
       {/* Sales Overview Cards */}
-      <div className="grid gap-4 md:grid-cols-3">
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-sm font-medium">
-              Today's Sales
-            </CardTitle>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <Card className="bg-white shadow">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium">Today's Sales</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
-              ৳{todaysSales.toLocaleString()}
-            </div>
+            <div className="text-xl sm:text-2xl font-bold">৳{todaysSales.toLocaleString()}</div>
           </CardContent>
         </Card>
-        <Card>
-          <CardHeader>
+        <Card className="bg-white shadow">
+          <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium">Units Sold</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{unitsSold}</div>
+            <div className="text-xl sm:text-2xl font-bold">{unitsSold}</div>
           </CardContent>
         </Card>
-        <Card>
-          <CardHeader>
+        <Card className="bg-white shadow">
+          <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium">Average Sale</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
-              ৳
-              {averageSale.toLocaleString(undefined, {
-                maximumFractionDigits: 0,
-              })}
+            <div className="text-xl sm:text-2xl font-bold">
+              ৳{averageSale.toLocaleString(undefined, { maximumFractionDigits: 0 })}
             </div>
           </CardContent>
         </Card>
       </div>
 
       {/* Sales Table */}
-      <Card>
+      <Card className="bg-white shadow">
         <CardHeader>
-          <CardTitle>Recent Sales</CardTitle>
-          <CardDescription>All sales transactions</CardDescription>
+          <CardTitle className="text-lg sm:text-xl">Recent Sales</CardTitle>
+          <CardDescription className="text-sm sm:text-base">All sales transactions</CardDescription>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Sale ID</TableHead>
-                <TableHead>Date</TableHead>
-                <TableHead>Customer</TableHead>
-                <TableHead>Product</TableHead>
-                <TableHead>Quantity</TableHead>
-                <TableHead>Price</TableHead>
-                <TableHead>Total</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {isLoading ? (
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
                 <TableRow>
-                  <TableCell colSpan={9} className="text-center">
-                    Loading sales...
-                  </TableCell>
+                  <TableHead className="text-xs sm:text-sm">Sale ID</TableHead>
+                  <TableHead className="text-xs sm:text-sm">Date</TableHead>
+                  <TableHead className="text-xs sm:text-sm">Customer</TableHead>
+                  <TableHead className="text-xs sm:text-sm">Product</TableHead>
+                  <TableHead className="text-xs sm:text-sm">Quantity</TableHead>
+                  <TableHead className="text-xs sm:text-sm">Price</TableHead>
+                  <TableHead className="text-xs sm:text-sm">Total</TableHead>
+                  <TableHead className="text-xs sm:text-sm">Status</TableHead>
+                  <TableHead className="text-xs sm:text-sm text-right">Actions</TableHead>
                 </TableRow>
-              ) : sales.length > 0 ? (
-                sales.map((sale) => (
-                  <TableRow key={sale.id}>
-                    <TableCell className="font-medium">
-                      S{String(sale.id).padStart(3, "0")}
-                    </TableCell>
-                    <TableCell>
-                      {formatDateSafe(sale)}
-                    </TableCell>
-                    <TableCell>{getCustomerName(sale)}</TableCell>
-                    <TableCell>{sale.items[0] ? getProductName(sale.items[0]) : "N/A"}</TableCell>
-                    <TableCell>{sale.items[0]?.quantity || "N/A"}</TableCell>
-                    <TableCell>
-                      ৳
-                      {parseFloat(
-                        sale.items[0]?.unit_price || "0"
-                      ).toLocaleString()}
-                    </TableCell>
-                    <TableCell>
-                      ৳{parseFloat(String(sale.total_amount)).toLocaleString()}
-                    </TableCell>
-                    <TableCell>
-                      <Badge
-                        variant={getStatusVariant(sale.status)}
-                      >
-                        {sale.status}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="flex gap-2">
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => handleViewSale(sale)}
-                      >
-                        <Eye className="w-4 h-4" />
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => handleEditSaleClick(sale)}
-                      >
-                        <Edit className="w-4 h-4" />
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="destructive"
-                        onClick={() => handleDeleteSale(sale.id)}
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
+              </TableHeader>
+              <TableBody>
+                {isLoading ? (
+                  <TableRow>
+                    <TableCell colSpan={9} className="text-center text-xs sm:text-sm">
+                      Loading sales...
                     </TableCell>
                   </TableRow>
-                ))
-              ) : (
-                <TableRow>
-                  <TableCell colSpan={9} className="text-center">
-                    No sales recorded yet.
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
+                ) : sales.length > 0 ? (
+                  sales.map((sale) => (
+                    <TableRow key={sale.id}>
+                      <TableCell className="font-medium text-xs sm:text-sm">
+                        S{String(sale.id).padStart(3, "0")}
+                      </TableCell>
+                      <TableCell className="text-xs sm:text-sm">{formatDateSafe(sale)}</TableCell>
+                      <TableCell className="text-xs sm:text-sm">{getCustomerName(sale)}</TableCell>
+                      <TableCell className="text-xs sm:text-sm">{sale.items[0] ? getProductName(sale.items[0]) : "N/A"}</TableCell>
+                      <TableCell className="text-xs sm:text-sm">{sale.items[0]?.quantity || "N/A"}</TableCell>
+                      <TableCell className="text-xs sm:text-sm">
+                        ৳{parseFloat(sale.items[0]?.unit_price || "0").toLocaleString()}
+                      </TableCell>
+                      <TableCell className="text-xs sm:text-sm">
+                        ৳{parseFloat(String(sale.total_amount)).toLocaleString()}
+                      </TableCell>
+                      <TableCell className="text-xs sm:text-sm">
+                        <Badge variant={getStatusVariant(sale.status)}>
+                          {sale.status}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="flex gap-1 justify-end">
+                        <Button
+                          size="icon"
+                          variant="outline"
+                          onClick={() => handleViewSale(sale)}
+                        >
+                          <Eye className="w-3 h-3 sm:w-4 sm:h-4" />
+                        </Button>
+                        <Button
+                          size="icon"
+                          variant="outline"
+                          onClick={() => handleEditSaleClick(sale)}
+                        >
+                          <Edit className="w-3 h-3 sm:w-4 sm:h-4" />
+                        </Button>
+                        <Button
+                          size="icon"
+                          variant="destructive"
+                          onClick={() => handleDeleteSale(sale.id)}
+                        >
+                          <Trash2 className="w-3 h-3 sm:w-4 sm:h-4" />
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell colSpan={9} className="text-center text-xs sm:text-sm">
+                      No sales recorded yet.
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </div>
         </CardContent>
       </Card>
 
       {/* View sale dialog */}
       <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
-        <DialogContent>
+        <DialogContent className="w-full max-w-[90vw] sm:max-w-[500px]">
           <DialogHeader>
-            <DialogTitle>Sale Details</DialogTitle>
-            <DialogDescription>Details from server (if available)</DialogDescription>
+            <DialogTitle className="text-lg sm:text-xl">Sale Details</DialogTitle>
+            <DialogDescription className="text-sm sm:text-base">Details from server (if available)</DialogDescription>
           </DialogHeader>
           <div className="py-4">
             {viewSale ? (
-              <div className="space-y-2 text-sm">
+              <div className="space-y-2 text-sm sm:text-base">
                 <div><strong>ID:</strong> {getSaleIdValue(viewSale)}</div>
                 <div><strong>Customer:</strong> {getCustomerName(viewSale)}</div>
                 <div><strong>Date:</strong> {formatDateSafe(viewSale)}</div>
                 <div><strong>Due Date:</strong> {formatDateSafe(viewSale, ["due_date"])}</div>
                 <div><strong>Amount:</strong> ৳{parseFloat(String(viewSale.total_amount || '0')).toLocaleString()}</div>
                 <div><strong>Status:</strong> {viewSale.status || "N/A"}</div>
-                <pre className="bg-muted p-2 rounded text-xs overflow-auto">{JSON.stringify(viewSale, null, 2)}</pre>
+                <pre className="bg-muted p-2 rounded text-xs sm:text-sm overflow-auto">{JSON.stringify(viewSale, null, 2)}</pre>
               </div>
             ) : (
-              <div>No details available</div>
+              <div className="text-sm sm:text-base">No details available</div>
             )}
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsViewDialogOpen(false)}>Close</Button>
+            <Button variant="outline" onClick={() => setIsViewDialogOpen(false)} className="w-full sm:w-auto">Close</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
       {/* Edit sale dialog */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="sm:max-w-[425px]">
+        <DialogContent className="w-full max-w-[90vw] sm:max-w-[425px]">
           <DialogHeader>
-            <DialogTitle>Edit Sale</DialogTitle>
-            <DialogDescription>
+            <DialogTitle className="text-lg sm:text-xl">Edit Sale</DialogTitle>
+            <DialogDescription className="text-sm sm:text-base">
               Update the sale transaction.
             </DialogDescription>
           </DialogHeader>
           {editSale && (
-            <div className="grid gap-4 py-4">
+            <div className="grid gap-4 py-4 overflow-y-auto max-h-[60vh]">
               <div className="space-y-2">
-                <Label htmlFor="customer">Customer</Label>
+                <Label htmlFor="customer" className="text-sm sm:text-base">Customer</Label>
                 <Select
                   value={String(editSale.customer)}
                   onValueChange={(value) => setEditSale({ ...editSale, customer: parseInt(value) })}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="text-sm sm:text-base">
                     <SelectValue placeholder="Select customer" />
                   </SelectTrigger>
                   <SelectContent>
@@ -683,12 +673,12 @@ const SalesTracker = () => {
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="product">Product</Label>
+                <Label htmlFor="product" className="text-sm sm:text-base">Product</Label>
                 <Select
                   value={String(editSale.items[0].product)}
                   onValueChange={(value) => setEditSale({ ...editSale, items: [{ ...editSale.items[0], product: parseInt(value) }] })}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="text-sm sm:text-base">
                     <SelectValue placeholder="Select product" />
                   </SelectTrigger>
                   <SelectContent>
@@ -701,28 +691,30 @@ const SalesTracker = () => {
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="quantity">Quantity</Label>
+                <Label htmlFor="quantity" className="text-sm sm:text-base">Quantity</Label>
                 <Input
                   id="quantity"
                   type="number"
                   value={editSale.items[0].quantity}
                   onChange={(e) => setEditSale({ ...editSale, items: [{ ...editSale.items[0], quantity: parseInt(e.target.value) || 0 }] })}
+                  className="text-sm sm:text-base"
                 />
               </div>
               <div className="space-y-2">
-                <Label>Price</Label>
+                <Label className="text-sm sm:text-base">Price</Label>
                 <Input
                   value={(parseFloat(getSelectedProduct(String(editSale.items[0].product))?.retail_price || getSelectedProduct(String(editSale.items[0].product))?.price || '0') || 0).toFixed(2)}
                   readOnly
+                  className="text-sm sm:text-base"
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="status">Status</Label>
+                <Label htmlFor="status" className="text-sm sm:text-base">Status</Label>
                 <Select
                   value={editSale.status}
                   onValueChange={(value) => setEditSale({ ...editSale, status: value })}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="text-sm sm:text-base">
                     <SelectValue placeholder="Select status" />
                   </SelectTrigger>
                   <SelectContent>
@@ -733,15 +725,14 @@ const SalesTracker = () => {
                 </Select>
               </div>
               <div className="flex justify-end items-center gap-2 pt-4 border-t">
-                <span className="text-lg font-semibold">Total:</span>
-                <span className="text-2xl font-bold">৳{calculateTotal(String(editSale.items[0].quantity), String(editSale.items[0].product)).toFixed(2)}</span>
+                <span className="text-sm sm:text-base font-semibold">Total:</span>
+                <span className="text-lg sm:text-xl font-bold">৳{calculateTotal(String(editSale.items[0].quantity), String(editSale.items[0].product)).toFixed(2)}</span>
               </div>
             </div>
           )}
-          <DialogFooter>
-            <Button type="submit" onClick={handleUpdateSale}>
-              Update Sale
-            </Button>
+          <DialogFooter className="flex flex-col sm:flex-row gap-2">
+            <Button variant="outline" onClick={() => setIsEditDialogOpen(false)} className="w-full sm:w-auto">Cancel</Button>
+            <Button type="submit" onClick={handleUpdateSale} className="w-full sm:w-auto">Update Sale</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

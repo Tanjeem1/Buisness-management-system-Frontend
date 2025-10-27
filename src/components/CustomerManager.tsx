@@ -9,7 +9,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { UserPlus, Phone, Mail, MapPin, Search, Filter, Eye, DollarSign, ShoppingBag, Trash2, Edit } from "lucide-react";
 import axios from "axios";
 
-// Define a type for the customer object for better type safety
 interface Customer {
   id: number;
   shop_name: string;
@@ -102,9 +101,6 @@ const CustomerManager = () => {
     
     const formData = new FormData();
     Object.entries(editingCustomer).forEach(([key, value]) => {
-      // ✅ THIS IS THE FIX ✅
-      // Use the nullish coalescing operator (??) to convert any null/undefined value to an empty string.
-      // This prevents sending the literal string "null" to the backend for fields like 'last_purchase'.
       formData.append(key, String(value ?? ''));
     });
     
@@ -151,65 +147,74 @@ const CustomerManager = () => {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="space-y-6 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-bold">Customer Management</h2>
-          <p className="text-muted-foreground">Manage your retail partners and customers</p>
+          <h2 className="text-2xl sm:text-3xl font-bold">Customer Management</h2>
+          <p className="text-muted-foreground text-sm sm:text-base">Manage your retail partners and customers</p>
         </div>
         <Dialog open={isAddCustomerDialogOpen} onOpenChange={setIsAddCustomerDialogOpen}>
           <DialogTrigger asChild>
-            <Button>
+            <Button className="w-full sm:w-auto">
               <UserPlus className="w-4 h-4 mr-2" />
               Add Customer
             </Button>
           </DialogTrigger>
-          <DialogContent className="sm:max-w-[600px]">
+          <DialogContent className="w-full max-w-[90vw] sm:max-w-[600px]">
             <DialogHeader>
-              <DialogTitle>Add New Customer</DialogTitle>
-              <DialogDescription>Add a new retail partner to your customer database.</DialogDescription>
+              <DialogTitle className="text-lg sm:text-xl">Add New Customer</DialogTitle>
+              <DialogDescription className="text-sm">Add a new retail partner to your customer database.</DialogDescription>
             </DialogHeader>
             <div className="grid gap-4 py-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2"><Label htmlFor="shop_name">Shop Name</Label><Input id="shop_name" value={newCustomer.shop_name} onChange={handleInputChange} placeholder="Enter shop name" /></div>
-                <div className="space-y-2"><Label htmlFor="contact_person">Owner Name</Label><Input id="contact_person" value={newCustomer.contact_person} onChange={handleInputChange} placeholder="Enter owner name" /></div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-2"><Label htmlFor="shop_name">Shop Name</Label><Input id="shop_name" value={newCustomer.shop_name} onChange={handleInputChange} placeholder="Enter shop name" className="text-sm" /></div>
+                <div className="space-y-2"><Label htmlFor="contact_person">Owner Name</Label><Input id="contact_person" value={newCustomer.contact_person} onChange={handleInputChange} placeholder="Enter owner name" className="text-sm" /></div>
               </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2"><Label htmlFor="phone_number">Phone</Label><Input id="phone_number" value={newCustomer.phone_number} onChange={handleInputChange} placeholder="Enter phone number" /></div>
-                <div className="space-y-2"><Label htmlFor="email">Email</Label><Input id="email" type="email" value={newCustomer.email} onChange={handleInputChange} placeholder="Enter email address" /></div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-2"><Label htmlFor="phone_number">Phone</Label><Input id="phone_number" value={newCustomer.phone_number} onChange={handleInputChange} placeholder="Enter phone number" className="text-sm" /></div>
+                <div className="space-y-2"><Label htmlFor="email">Email</Label><Input id="email" type="email" value={newCustomer.email} onChange={handleInputChange} placeholder="Enter email address" className="text-sm" /></div>
               </div>
-              <div className="space-y-2"><Label htmlFor="address">Address</Label><Textarea id="address" value={newCustomer.address} onChange={handleInputChange} placeholder="Enter full address" /></div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2"><Label htmlFor="address">Address</Label><Textarea id="address" value={newCustomer.address} onChange={handleInputChange} placeholder="Enter full address" className="text-sm" /></div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="shop_type">Shop Type</Label>
-                  <select id="shop_type" value={newCustomer.shop_type} onChange={handleSelectChange} className="w-full p-2 border rounded-md"><option value="">Select shop type</option><option value="Retail Shop">Retail Shop</option><option value="Tea Boutique">Tea Boutique</option><option value="Supermarket">Supermarket</option><option value="Corner Shop">Corner Shop</option></select>
+                  <select id="shop_type" value={newCustomer.shop_type} onChange={handleSelectChange} className="w-full p-2 border rounded-md text-sm">
+                    <option value="">Select shop type</option>
+                    <option value="Retail Shop">Retail Shop</option>
+                    <option value="Tea Boutique">Tea Boutique</option>
+                    <option value="Supermarket">Supermarket</option>
+                    <option value="Corner Shop">Corner Shop</option>
+                  </select>
                 </div>
-                <div className="space-y-2"><Label htmlFor="credit_limit">Credit Limit (৳)</Label><Input id="credit_limit" type="number" value={newCustomer.credit_limit} onChange={handleInputChange} placeholder="Enter credit limit" /></div>
+                <div className="space-y-2"><Label htmlFor="credit_limit">Credit Limit (৳)</Label><Input id="credit_limit" type="number" value={newCustomer.credit_limit} onChange={handleInputChange} placeholder="Enter credit limit" className="text-sm" /></div>
               </div>
             </div>
-            <DialogFooter><Button onClick={() => setIsAddCustomerDialogOpen(false)} variant="outline">Cancel</Button><Button onClick={handleAddCustomer}>Add Customer</Button></DialogFooter>
+            <DialogFooter className="flex flex-col sm:flex-row gap-2">
+              <Button onClick={() => setIsAddCustomerDialogOpen(false)} variant="outline" className="w-full sm:w-auto">Cancel</Button>
+              <Button onClick={handleAddCustomer} className="w-full sm:w-auto">Add Customer</Button>
+            </DialogFooter>
           </DialogContent>
         </Dialog>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-4">
-         <Card><CardHeader className="pb-2"><CardTitle className="text-sm font-medium">Total Customers</CardTitle></CardHeader><CardContent><div className="text-2xl font-bold">{customers.length}</div><p className="text-xs text-muted-foreground">Registered partners</p></CardContent></Card>
-        <Card><CardHeader className="pb-2"><CardTitle className="text-sm font-medium">Active Customers</CardTitle></CardHeader><CardContent><div className="text-2xl font-bold">{customers.filter(c => c.status === 'active').length}</div><p className="text-xs text-muted-foreground">Currently buying</p></CardContent></Card>
-        <Card><CardHeader className="pb-2"><CardTitle className="text-sm font-medium">Outstanding Amount</CardTitle></CardHeader><CardContent><div className="text-2xl font-bold">৳{customers.reduce((sum, c) => sum + parseFloat(c.outstanding_amount || '0'), 0).toLocaleString()}</div><p className="text-xs text-muted-foreground">Total receivables</p></CardContent></Card>
-        <Card><CardHeader className="pb-2"><CardTitle className="text-sm font-medium">Total Credit Limit</CardTitle></CardHeader><CardContent><div className="text-2xl font-bold">৳{customers.reduce((sum, c) => sum + parseFloat(c.credit_limit || '0'), 0).toLocaleString()}</div><p className="text-xs text-muted-foreground">Available credit</p></CardContent></Card>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <Card><CardHeader className="pb-2"><CardTitle className="text-sm font-medium">Total Customers</CardTitle></CardHeader><CardContent><div className="text-xl sm:text-2xl font-bold">{customers.length}</div><p className="text-xs">Registered partners</p></CardContent></Card>
+        <Card><CardHeader className="pbRotary 2"><CardTitle className="text-sm font-medium">Active Customers</CardTitle></CardHeader><CardContent><div className="text-xl sm:text-2xl font-bold">{customers.filter(c => c.status === 'active').length}</div><p className="text-xs">Currently buying</p></CardContent></Card>
+        <Card><CardHeader className="pb-2"><CardTitle className="text-sm font-medium">Outstanding Amount</CardTitle></CardHeader><CardContent><div className="text-xl sm:text-2xl font-bold">৳{customers.reduce((sum, c) => sum + parseFloat(c.outstanding_amount || '0'), 0).toLocaleString()}</div><p className="text-xs">Total receivables</p></CardContent></Card>
+        <Card><CardHeader className="pb-2"><CardTitle className="text-sm font-medium">Total Credit Limit</CardTitle></CardHeader><CardContent><div className="text-xl sm:text-2xl font-bold">৳{customers.reduce((sum, c) => sum + parseFloat(c.credit_limit || '0'), 0).toLocaleString()}</div><p className="text-xs">Available credit</p></CardContent></Card>
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle>Customer Directory</CardTitle>
-          <CardDescription>Complete list of retail partners</CardDescription>
-           <div className="flex gap-2 pt-2">
-            <div className="relative flex-1"><Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" /><Input placeholder="Search customers..." className="pl-8" /></div>
-            <Button variant="outline" size="sm"><Filter className="w-4 h-4 mr-2" />Filter</Button>
+          <CardTitle className="text-lg sm:text-xl">Customer Directory</CardTitle>
+          <CardDescription className="text-sm">Complete list of retail partners</CardDescription>
+          <div className="flex flex-col sm:flex-row gap-2 pt-2">
+            <div className="relative flex-1"><Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" /><Input placeholder="Search customers..." className="pl-8 text-sm" /></div>
+            <Button variant="outline" size="sm" className="w-full sm:w-auto"><Filter className="w-4 h-4 mr-2" />Filter</Button>
           </div>
         </CardHeader>
         <CardContent>
-          <div className="grid gap-4 md:grid-cols-2">
+          <div className="grid gap旁的4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {customers.map((customer) => {
               const outstandingAmount = parseFloat(customer.outstanding_amount || '0');
               const creditLimit = parseFloat(customer.credit_limit || '0');
@@ -218,18 +223,22 @@ const CustomerManager = () => {
               return (
                 <Card key={customer.id} className="p-4 flex flex-col justify-between">
                   <div className="space-y-3">
-                     <div className="flex items-start justify-between">
-                      <div><h3 className="font-semibold text-lg">{customer.shop_name}</h3><p className="text-sm text-muted-foreground">{customer.contact_person}</p><Badge variant="outline" className="text-xs mt-1">{customer.shop_type}</Badge></div>
-                      <Badge variant={customer.status === 'active' ? 'default' : 'secondary'}>{customer.status}</Badge>
+                    <div className="flex items-start justify-between">
+                      <div>
+                        <h3 className="font-semibold text-base sm:text-lg">{customer.shop_name}</h3>
+                        <p className="text-xs sm:text-sm text-muted-foreground">{customer.contact_person}</p>
+                        <Badge variant="outline" className="text-xs mt-1">{customer.shop_type}</Badge>
+                      </div>
+                      <Badge variant={customer.status === 'active' ? 'default' : 'secondary'} className="text-xs">{customer.status}</Badge>
                     </div>
                     <div className="space-y-2">
-                      <div className="flex items-center gap-2 text-sm"><Phone className="w-4 h-4 text-muted-foreground" /><span>{customer.phone_number}</span></div>
-                      <div className="flex items-center gap-2 text-sm"><Mail className="w-4 h-4 text-muted-foreground" /><span>{customer.email}</span></div>
-                      <div className="flex items-start gap-2 text-sm"><MapPin className="w-4 h-4 text-muted-foreground mt-0.5" /><span>{customer.address}</span></div>
+                      <div className="flex items-center gap-2 text-xs sm:text-sm"><Phone className="w-4 h-4 text-muted-foreground" /><span>{customer.phone_number}</span></div>
+                      <div className="flex items-center gap-2 text-xs sm:text-sm"><Mail className="w-4 h-4 text-muted-foreground" /><span>{customer.email}</span></div>
+                      <div className="flex items-start gap-2 text-xs sm:text-sm"><MapPin className="w-4 h-4 text-muted-foreground mt-0.5" /><span>{customer.address}</span></div>
                     </div>
                     <div className="grid grid-cols-2 gap-4 pt-2 border-t">
-                      <div className="space-y-1"><div className="flex items-center gap-1 text-sm"><ShoppingBag className="w-4 h-4 text-muted-foreground" /><span className="font-medium">Purchases:</span></div><p className="text-sm">{customer.total_purchases} orders</p></div>
-                      <div className="space-y-1"><div className="flex items-center gap-1 text-sm"><DollarSign className="w-4 h-4 text-muted-foreground" /><span className="font-medium">Outstanding:</span></div><p className="text-sm">৳{outstandingAmount.toLocaleString()}</p></div>
+                      <div className="space-y-1"><div className="flex items-center gap-1 text-xs sm:text-sm"><ShoppingBag className="w-4 h-4 text-muted-foreground" /><span className="font-medium">Purchases:</span></div><p className="text-xs sm:text-sm">{customer.total_purchases} orders</p></div>
+                      <div className="space-y-1"><div className="flex items-center gap-1 text-xs sm:text-sm"><DollarSign className="w-4 h-4 text-muted-foreground" /><span className="font-medium">Outstanding:</span></div><p className="text-xs sm:text-sm">৳{outstandingAmount.toLocaleString()}</p></div>
                     </div>
                     <div className="space-y-2">
                       <div className="flex justify-between text-xs"><span>Credit Utilization</span><span>{creditUtilization.toFixed(1)}%</span></div>
@@ -239,9 +248,9 @@ const CustomerManager = () => {
                       <div className="flex justify-between text-xs text-muted-foreground"><span>৳0</span><span>৳{creditLimit.toLocaleString()}</span></div>
                     </div>
                   </div>
-                  <div className="flex gap-2 pt-4">
+                  <div className="flex flex-col sm:flex-row gap-2 pt-4">
                     <Button size="sm" variant="outline" className="flex-1" onClick={() => openEditDialog(customer)}><Edit className="w-4 h-4 mr-2" />Edit</Button>
-                    <Button size="sm" variant="destructive" className="flex-1" onClick={() => openDeleteDialog(customer)}><Trash2 className="w-4 h-4 mr-2" />Delete</Button>
+                    <Button size="sm" variant="destructive" className="flex-1" onClick={() => openDeleteDialog(customer)}><Trash2 className="w-4 h-4 mr-2orme2" />Delete</Button>
                   </div>
                 </Card>
               );
@@ -252,38 +261,38 @@ const CustomerManager = () => {
       
       {editingCustomer && (
         <Dialog open={isEditCustomerDialogOpen} onOpenChange={setIsEditCustomerDialogOpen}>
-          <DialogContent className="sm:max-w-[600px]">
-            <DialogHeader><DialogTitle>Edit Customer</DialogTitle><DialogDescription>Update the details for {editingCustomer.shop_name}.</DialogDescription></DialogHeader>
+          <DialogContent className="w-full max-w-[90vw] sm:max-w-[600px]">
+            <DialogHeader><DialogTitle className="text-lg sm:text-xl">Edit Customer</DialogTitle><DialogDescription className="text-sm">Update the details for {editingCustomer.shop_name}.</DialogDescription></DialogHeader>
             <div className="grid gap-4 py-4">
-               <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2"><Label htmlFor="shop_name">Shop Name</Label><Input id="shop_name" value={editingCustomer.shop_name} onChange={handleEditInputChange} /></div>
-                <div className="space-y-2"><Label htmlFor="contact_person">Owner Name</Label><Input id="contact_person" value={editingCustomer.contact_person} onChange={handleEditInputChange} /></div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-2"><Label htmlFor="shop_name">Shop Name</Label><Input id="shop_name" value={editingCustomer.shop_name} onChange={handleEditInputChange} className="text-sm" /></div>
+                <div className="space-y-2"><Label htmlFor="contact_person">Owner Name</Label><Input id="contact_person" value={editingCustomer.contact_person} onChange={handleEditInputChange} className="text-sm" /></div>
               </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2"><Label htmlFor="phone_number">Phone</Label><Input id="phone_number" value={editingCustomer.phone_number} onChange={handleEditInputChange} /></div>
-                <div className="space-y-2"><Label htmlFor="email">Email</Label><Input id="email" type="email" value={editingCustomer.email} onChange={handleEditInputChange} /></div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-2"><Label htmlFor="phone_number">Phone</Label><Input id="phone_number" value={editingCustomer.phone_number} onChange={handleEditInputChange} className="text-sm" /></div>
+                <div className="space-y-2"><Label htmlFor="email">Email</Label><Input id="email" type="email" value={editingCustomer.email} onChange={handleEditInputChange} className="text-sm" /></div>
               </div>
-              <div className="space-y-2"><Label htmlFor="address">Address</Label><Textarea id="address" value={editingCustomer.address} onChange={handleEditInputChange} /></div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2"><Label htmlFor="address">Address</Label><Textarea id="address" value={editingCustomer.address} onChange={handleEditInputChange} className="text-sm" /></div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="shop_type">Shop Type</Label>
-                  <select id="shop_type" value={editingCustomer.shop_type} onChange={handleEditSelectChange} className="w-full p-2 border rounded-md"><option value="">Select shop type</option><option value="Retail Shop">Retail Shop</option><option value="Tea Boutique">Tea Boutique</option><option value="Supermarket">Supermarket</option><option value="Corner Shop">Corner Shop</option></select>
+                  <select id="shop_type" value={editingCustomer.shop_type} onChange={handleEditSelectChange} className="w-full p-2 border rounded-md text-sm"><option value="">Select shop type</option><option value="Retail Shop">Retail Shop</option><option value="Tea Boutique">Tea Boutique</option><option value="Supermarket">Supermarket</option><option value="Corner Shop">Corner Shop</option></select>
                 </div>
-                <div className="space-y-2"><Label htmlFor="credit_limit">Credit Limit (৳)</Label><Input id="credit_limit" type="number" value={editingCustomer.credit_limit} onChange={handleEditInputChange} /></div>
+                <div className="space-y-2"><Label htmlFor="credit_limit">Credit Limit (৳)</Label><Input id="credit_limit" type="number" value={editingCustomer.credit_limit} onChange={handleEditInputChange} className="text-sm" /></div>
               </div>
             </div>
-            <DialogFooter><Button onClick={() => setIsEditCustomerDialogOpen(false)} variant="outline">Cancel</Button><Button onClick={handleUpdateCustomer}>Save Changes</Button></DialogFooter>
+            <DialogFooter className="flex flex-col sm:flex-row gap-2"><Button onClick={() => setIsEditCustomerDialogOpen(false)} variant="outline" className="w-full sm:w-auto">Cancel</Button><Button onClick={handleUpdateCustomer} className="w-full sm:w-auto">Save Changes</Button></DialogFooter>
           </DialogContent>
         </Dialog>
       )}
 
       {customerToDelete && (
          <Dialog open={isDeleteConfirmOpen} onOpenChange={setIsDeleteConfirmOpen}>
-          <DialogContent className="sm:max-w-[425px]">
-            <DialogHeader><DialogTitle>Confirm Deletion</DialogTitle><DialogDescription>Are you sure you want to delete the customer "{customerToDelete.shop_name}"? This action cannot be undone.</DialogDescription></DialogHeader>
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setIsDeleteConfirmOpen(false)}>Cancel</Button>
-              <Button variant="destructive" onClick={handleDeleteCustomer}>Delete Customer</Button>
+          <DialogContent className="w-full max-w-[90vw] sm:max-w-[425px]">
+            <DialogHeader><DialogTitle className="text-lg sm:text-xl">Confirm Deletion</DialogTitle><DialogDescription className="text-sm">Are you sure you want to delete the customer "{customerToDelete.shop_name}"? This action cannot be undone.</DialogDescription></DialogHeader>
+            <DialogFooter className="flex flex-col sm:flex-row gap-2">
+              <Button variant="outline" onClick={() => setIsDeleteConfirmOpen(false)} className="w-full sm:w-auto">Cancel</Button>
+              <Button variant="destructive" onClick={handleDeleteCustomer} className="w-full sm:w-auto">Delete Customer</Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>

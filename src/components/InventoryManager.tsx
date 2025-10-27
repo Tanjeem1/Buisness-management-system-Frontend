@@ -110,14 +110,13 @@ const InventoryManager = () => {
   const fetchData = async () => {
     setIsLoading(true);
     try {
-      // Fetching all three datasets concurrently
       const [purchasesRes, productsRes, vendorsRes] = await Promise.all([
         axios.get(`${API_BASE_URL}wholesalepurchases/`, authHeaders),
-        axios.get(`${API_BASE_URL}products/`, authHeaders), // This is the crucial endpoint for your calculations
+        axios.get(`${API_BASE_URL}products/`, authHeaders),
         axios.get(`${API_BASE_URL}vendors/`, authHeaders),
       ]);
       setPurchases(purchasesRes.data || []);
-      setProducts(productsRes.data || []); // This populates the 'products' state
+      setProducts(productsRes.data || []);
       setVendors(vendorsRes.data || []);
     } catch (error) {
       console.error("Error fetching data:", error);
@@ -128,11 +127,9 @@ const InventoryManager = () => {
   };
 
   useEffect(() => {
-    fetchData(); // Fetch data when the component mounts
+    fetchData();
   }, []);
 
-  // Helper functions to get product/vendor names from IDs,
-  // assuming 'products' and 'vendors' states are correctly populated
   const getProductName = (productId: number | { id: number; name: string }) => {
     const id = typeof productId === "object" ? productId.id : productId;
     return products.find((p) => p.id === id)?.name || "N/A";
@@ -144,7 +141,6 @@ const InventoryManager = () => {
   };
 
   const handleSavePurchase = async () => {
-    // Basic validation
     if (
       !newPurchaseFormData.product ||
       !newPurchaseFormData.vendor ||
@@ -162,7 +158,6 @@ const InventoryManager = () => {
         ? `${API_BASE_URL}wholesalepurchases/${newPurchaseFormData.id}/`
         : `${API_BASE_URL}wholesalepurchases/`;
 
-    // Construct FormData for multipart/form-data requests
     const formData = new FormData();
     formData.append(
       "product",
@@ -194,7 +189,7 @@ const InventoryManager = () => {
       setIsAddPurchaseModalOpen(false);
       setIsEditMode(false);
       toast.success(isEditMode ? "Purchase updated!" : "Purchase added!");
-      fetchData(); // Re-fetch data to update the lists after save
+      fetchData();
     } catch (error) {
       console.error("Error saving purchase:", error);
       toast.error("Failed to save purchase.");
@@ -225,46 +220,39 @@ const InventoryManager = () => {
     try {
       await axios.delete(`${API_BASE_URL}wholesalepurchases/${id}/`, authHeaders);
       toast.success("Purchase deleted!");
-      fetchData(); // Re-fetch data to update the list
+      fetchData();
     } catch {
       toast.error("Delete failed!");
     }
   };
 
   const setPurchaseDateToToday = () => {
-    const today = new Date().toISOString().split("T")[0]; // Format date as YYYY-MM-DD
+    const today = new Date().toISOString().split("T")[0];
     setNewPurchaseFormData({ ...newPurchaseFormData, purchase_date: today });
   };
 
-  /**
-   * ✅ CORRECT CALCULATIONS for Total Stock Value and Potential Revenue
-   * These calculations rely on the 'products' state being correctly populated
-   * with 'stock_quantity', 'wholesale_cost', and 'retail_price' from your backend.
-   */
   const totalStockValue = products.reduce((sum, p) => {
     const stock = Number(p.stock_quantity || 0);
-    const cost = parseFloat(p.wholesale_cost || "0"); // Ensure parsing for string prices
+    const cost = parseFloat(p.wholesale_cost || "0");
     return sum + stock * cost;
   }, 0);
 
   const potentialRevenue = products.reduce((sum, p) => {
     const stock = Number(p.stock_quantity || 0);
-    const price = parseFloat(p.retail_price || "0"); // Ensure parsing for string prices
+    const price = parseFloat(p.retail_price || "0");
     return sum + stock * price;
   }, 0);
 
   return (
-    <div className="space-y-6 p-6 bg-gray-50 min-h-screen">
-      <Toaster position="top-right" /> {/* Toast notifications */}
+    <div className="space-y-6 p-4 sm:p-6 lg:p-8 bg-gray-50 min-h-screen max-w-7xl mx-auto">
+      <Toaster position="top-right" />
 
-      {/* Header with Inventory Management title and Add Purchase button */}
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold text-gray-800 flex items-center gap-2">
-          <Package className="text-green-600" /> Inventory Management
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 flex items-center gap-2">
+          <Package className="text-green-600 w-6 h-6" /> Inventory Management
         </h1>
-        <button
+        <Button
           onClick={() => {
-            // Reset form data and open modal for new purchase
             setNewPurchaseFormData({
               product: "",
               vendor: "",
@@ -275,95 +263,90 @@ const InventoryManager = () => {
             setIsEditMode(false);
             setIsAddPurchaseModalOpen(true);
           }}
-          className="bg-black hover:bg-gray-800 text-white px-4 py-2 rounded-md flex items-center gap-2"
+          className="bg-black hover:bg-gray-800 text-white w-full sm:w-auto flex items-center gap-2"
         >
           <PlusCircle size={20} /> Add Purchase
-        </button>
+        </Button>
       </div>
 
-      {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        <Card className="bg-white p-4 shadow">
-          <CardHeader>
-            <CardTitle>Total Products</CardTitle>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <Card className="bg-white shadow">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium">Total Products</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{products.length}</div>
+            <div className="text-xl sm:text-2xl font-bold">{products.length}</div>
           </CardContent>
         </Card>
 
-        <Card className="bg-white p-4 shadow">
-          <CardHeader>
-            <CardTitle>Total Purchases</CardTitle>
+        <Card className="bg-white shadow">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium">Total Purchases</CardTitle>
           </CardHeader>
           <CardContent>
-            {/* Displaying the count of wholesale purchases */}
-            <div className="text-2xl font-bold">{purchases.length}</div>
+            <div className="text-xl sm:text-2xl font-bold">{purchases.length}</div>
           </CardContent>
         </Card>
 
-        <Card className="bg-white p-4 shadow">
-          <CardHeader>
-            <CardTitle>Total Stock Value</CardTitle>
+        <Card className="bg-white shadow">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium">Total Stock Value</CardTitle>
           </CardHeader>
           <CardContent>
-            {/* Displaying the calculated Total Stock Value */}
-            <div className="text-2xl font-bold">৳{totalStockValue.toLocaleString()}</div>
+            <div className="text-xl sm:text-2xl font-bold">৳{totalStockValue.toLocaleString()}</div>
           </CardContent>
         </Card>
 
-        <Card className="bg-white p-4 shadow">
-          <CardHeader>
-            <CardTitle>Potential Revenue</CardTitle>
+        <Card className="bg-white shadow">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium">Potential Revenue</CardTitle>
           </CardHeader>
           <CardContent>
-            {/* Displaying the calculated Potential Revenue */}
-            <div className="text-2xl font-bold">৳{potentialRevenue.toLocaleString()}</div>
+            <div className="text-xl sm:text-2xl font-bold">৳{potentialRevenue.toLocaleString()}</div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Wholesale Purchases Table */}
-      <Card className="bg-white p-4 shadow">
+      <Card className="bg-white shadow">
         <CardHeader>
-          <CardTitle>Inventory Overview</CardTitle>
-          <CardDescription>Manage your .</CardDescription>
+          <CardTitle className="text-lg sm:text-xl">Inventory Overview</CardTitle>
+          <CardDescription className="text-sm">Manage your wholesale purchases.</CardDescription>
         </CardHeader>
         <CardContent>
           {isLoading ? (
-            <p>Loading purchases...</p>
+            <p className="text-sm">Loading purchases...</p>
           ) : (
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Product</TableHead>
-                    <TableHead>Vendor</TableHead>
-                    <TableHead>Quantity</TableHead>
-                    <TableHead>Cost/Unit</TableHead>
-                    <TableHead>Total Cost</TableHead>
-                    <TableHead>Purchase Date</TableHead> {/* Corrected column name */}
-                    <TableHead className="text-right">Actions</TableHead>
+                    <TableHead className="text-xs sm:text-sm">Product</TableHead>
+                    <TableHead className="text-xs sm:text-sm">Vendor</TableHead>
+                    <TableHead className="text-xs sm:text-sm">Quantity</TableHead>
+                    <TableHead className="text-xs sm:text-sm">Cost/Unit</TableHead>
+                    <TableHead className="text-xs sm:text-sm">Total Cost</TableHead>
+                    <TableHead className="text-xs sm:text-sm">Purchase Date</TableHead>
+                    <TableHead className="text-right text-xs sm:text-sm">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {purchases.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={7} className="text-center">
+                      <TableCell colSpan={7} className="text-center text-sm">
                         No wholesale purchases found.
                       </TableCell>
                     </TableRow>
                   ) : (
                     purchases.map((purchase) => (
                       <TableRow key={purchase.id}>
-                        <TableCell>{getProductName(purchase.product)}</TableCell>
-                        <TableCell>{getVendorName(purchase.vendor)}</TableCell>
-                        <TableCell>{purchase.quantity}</TableCell>
-                        <TableCell>৳{parseFloat(purchase.cost_per_unit).toLocaleString()}</TableCell>
-                        <TableCell>
+                        <TableCell className="text-xs sm:text-sm">{getProductName(purchase.product)}</TableCell>
+                        <TableCell className="text-xs sm:text-sm">{getVendorName(purchase.vendor)}</TableCell>
+                        <TableCell className="text-xs sm:text-sm">{purchase.quantity}</TableCell>
+                        <TableCell className="text-xs sm:text-sm">৳{parseFloat(purchase.cost_per_unit).toLocaleString()}</TableCell>
+                        <TableCell className="text-xs sm:text-sm">
                           ৳{(purchase.quantity * parseFloat(purchase.cost_per_unit)).toLocaleString()}
                         </TableCell>
-                        <TableCell>{purchase.purchase_date}</TableCell>
+                        <TableCell className="text-xs sm:text-sm">{purchase.purchase_date}</TableCell>
                         <TableCell className="text-right flex justify-end gap-2">
                           <Button
                             variant="outline"
@@ -400,25 +383,23 @@ const InventoryManager = () => {
         </CardContent>
       </Card>
 
-
-      {/* Add/Edit Purchase Dialog */}
       <Dialog open={isAddPurchaseModalOpen} onOpenChange={setIsAddPurchaseModalOpen}>
-        <DialogContent className="sm:max-w-[425px]">
+        <DialogContent className="w-full max-w-[90vw] sm:max-w-[425px]">
           <DialogHeader>
-            <DialogTitle>{isEditMode ? "Edit Purchase" : "Add New Purchase"}</DialogTitle>
-            <DialogDescription>
+            <DialogTitle className="text-lg sm:text-xl">{isEditMode ? "Edit Purchase" : "Add New Purchase"}</DialogTitle>
+            <DialogDescription className="text-sm">
               {isEditMode
                 ? "Make changes to this purchase here."
                 : "Add a new wholesale product purchase."}
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
-            <div className="grid grid-cols-[1fr,2fr] items-center gap-4">
-              <Label htmlFor="product" className="text-right">
+            <div className="grid grid-cols-1 sm:grid-cols-[1fr,2fr] items-center gap-4">
+              <Label htmlFor="product" className="text-right text-sm">
                 Product
               </Label>
               <Select
-                value={String(newPurchaseFormData.product || "")} // Ensure default value is string or empty string
+                value={String(newPurchaseFormData.product || "")}
                 onValueChange={(value) =>
                   setNewPurchaseFormData({ ...newPurchaseFormData, product: Number(value) })
                 }
@@ -435,12 +416,12 @@ const InventoryManager = () => {
                 </SelectContent>
               </Select>
             </div>
-            <div className="grid grid-cols-[1fr,2fr] items-center gap-4">
-              <Label htmlFor="vendor" className="text-right">
+            <div className="grid grid-cols-1 sm:grid-cols-[1fr,2fr] items-center gap-4">
+              <Label htmlFor="vendor" className="text-right text-sm">
                 Vendor
               </Label>
               <Select
-                value={String(newPurchaseFormData.vendor || "")} // Ensure default value is string or empty string
+                value={String(newPurchaseFormData.vendor || "")}
                 onValueChange={(value) =>
                   setNewPurchaseFormData({ ...newPurchaseFormData, vendor: Number(value) })
                 }
@@ -457,8 +438,8 @@ const InventoryManager = () => {
                 </SelectContent>
               </Select>
             </div>
-            <div className="grid grid-cols-[1fr,2fr] items-center gap-4">
-              <Label htmlFor="quantity" className="text-right">
+            <div className="grid grid-cols-1 sm:grid-cols-[1fr,2fr] items-center gap-4">
+              <Label htmlFor="quantity" className="text-right text-sm">
                 Quantity
               </Label>
               <Input
@@ -468,10 +449,11 @@ const InventoryManager = () => {
                 onChange={(e) =>
                   setNewPurchaseFormData({ ...newPurchaseFormData, quantity: Number(e.target.value) })
                 }
+                className="text-sm"
               />
             </div>
-            <div className="grid grid-cols-[1fr,2fr] items-center gap-4">
-              <Label htmlFor="cost_per_unit" className="text-right">
+            <div className="grid grid-cols-1 sm:grid-cols-[1fr,2fr] items-center gap-4">
+              <Label htmlFor="cost_per_unit" className="text-right text-sm">
                 Cost Per Unit (৳)
               </Label>
               <Input
@@ -482,10 +464,11 @@ const InventoryManager = () => {
                 onChange={(e) =>
                   setNewPurchaseFormData({ ...newPurchaseFormData, cost_per_unit: e.target.value })
                 }
+                className="text-sm"
               />
             </div>
-            <div className="grid grid-cols-[1fr,2fr] items-center gap-4">
-              <Label htmlFor="purchase_date" className="text-right">
+            <div className="grid grid-cols-1 sm:grid-cols-[1fr,2fr] items-center gap-4">
+              <Label htmlFor="purchase_date" className="text-right text-sm">
                 Purchase Date
               </Label>
               <div className="flex gap-2">
@@ -496,66 +479,65 @@ const InventoryManager = () => {
                   onChange={(e) =>
                     setNewPurchaseFormData({ ...newPurchaseFormData, purchase_date: e.target.value })
                   }
-                  className="flex-grow"
+                  className="flex-grow text-sm"
                 />
-                <Button variant="outline" onClick={setPurchaseDateToToday}>
+                <Button variant="outline" onClick={setPurchaseDateToToday} className="w-full sm:w-auto">
                   Today
                 </Button>
               </div>
             </div>
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsAddPurchaseModalOpen(false)}>
+          <DialogFooter className="flex flex-col sm:flex-row gap-2">
+            <Button variant="outline" onClick={() => setIsAddPurchaseModalOpen(false)} className="w-full sm:w-auto">
               Cancel
             </Button>
-            <Button onClick={handleSavePurchase}>
+            <Button onClick={handleSavePurchase} className="w-full sm:w-auto">
               {isEditMode ? "Save Changes" : "Add Purchase"}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      {/* View Purchase Details Dialog */}
       <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
-        <DialogContent className="sm:max-w-[425px]">
+        <DialogContent className="w-full max-w-[90vw] sm:max-w-[425px]">
           <DialogHeader>
-            <DialogTitle>Purchase Details</DialogTitle>
-            <DialogDescription>
+            <DialogTitle className="text-lg sm:text-xl">Purchase Details</DialogTitle>
+            <DialogDescription className="text-sm">
               Detailed information about this wholesale purchase.
             </DialogDescription>
           </DialogHeader>
           {viewPurchase && (
             <div className="grid gap-4 py-4">
-              <div className="grid grid-cols-2 gap-4">
-                <Label className="font-semibold">Product:</Label>
-                <span>{getProductName(viewPurchase.product)}</span>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <Label className="font-semibold text-sm">Product:</Label>
+                <span className="text-sm">{getProductName(viewPurchase.product)}</span>
               </div>
-              <div className="grid grid-cols-2 gap-4">
-                <Label className="font-semibold">Vendor:</Label>
-                <span>{getVendorName(viewPurchase.vendor)}</span>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <Label className="font-semibold text-sm">Vendor:</Label>
+                <span className="text-sm">{getVendorName(viewPurchase.vendor)}</span>
               </div>
-              <div className="grid grid-cols-2 gap-4">
-                <Label className="font-semibold">Quantity:</Label>
-                <span>{viewPurchase.quantity}</span>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <Label className="font-semibold text-sm">Quantity:</Label>
+                <span className="text-sm">{viewPurchase.quantity}</span>
               </div>
-              <div className="grid grid-cols-2 gap-4">
-                <Label className="font-semibold">Cost Per Unit:</Label>
-                <span>৳{parseFloat(viewPurchase.cost_per_unit).toLocaleString()}</span>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <Label className="font-semibold text-sm">Cost Per Unit:</Label>
+                <span className="text-sm">৳{parseFloat(viewPurchase.cost_per_unit).toLocaleString()}</span>
               </div>
-              <div className="grid grid-cols-2 gap-4">
-                <Label className="font-semibold">Total Cost:</Label>
-                <span>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <Label className="font-semibold text-sm">Total Cost:</Label>
+                <span className="text-sm">
                   ৳{(viewPurchase.quantity * parseFloat(viewPurchase.cost_per_unit)).toLocaleString()}
                 </span>
               </div>
-              <div className="grid grid-cols-2 gap-4">
-                <Label className="font-semibold">Purchase Date:</Label>
-                <span>{viewPurchase.purchase_date}</span>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <Label className="font-semibold text-sm">Purchase Date:</Label>
+                <span className="text-sm">{viewPurchase.purchase_date}</span>
               </div>
             </div>
           )}
           <DialogFooter>
-            <Button onClick={() => setIsViewDialogOpen(false)}>Close</Button>
+            <Button onClick={() => setIsViewDialogOpen(false)} className="w-full sm:w-auto">Close</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

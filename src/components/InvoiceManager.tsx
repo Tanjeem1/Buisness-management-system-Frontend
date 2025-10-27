@@ -41,7 +41,6 @@ interface Invoice {
   created_at?: string;
   due_date?: string;
   status?: string;
-  // backend may contain other keys - we don't require them
 }
 
 interface InvoiceItem {
@@ -87,7 +86,6 @@ const InvoiceManager = () => {
       const [productsRes, customersRes, invoicesRes] = await Promise.all([
         axios.get(`${API_BASE_URL}/products/`, { headers: authHeaders }),
         axios.get(`${API_BASE_URL}/customers/`, { headers: authHeaders }),
-        // Use /sales/ as the canonical source for invoices (per our earlier diagnosis)
         axios.get(`${API_BASE_URL}/sales/`, { headers: authHeaders }),
       ]);
 
@@ -103,9 +101,7 @@ const InvoiceManager = () => {
   };
 
   // Utility helpers to render fields robustly
-
   const getInvoiceIdValue = (invoice: Invoice) => {
-    // prefer numeric id, else invoice_number/invoice_id, else fallback N/A
     if (invoice.id !== undefined && invoice.id !== null) return String(invoice.id);
     if (invoice.invoice_number) return String(invoice.invoice_number);
     if (invoice.invoice_id) return String(invoice.invoice_id);
@@ -115,11 +111,9 @@ const InvoiceManager = () => {
 
   const getCustomerName = (invoice: Invoice) => {
     const c = invoice.customer;
-    // If backend returns object with shop_name or name
     if (c && typeof c === "object") {
       return (c.shop_name || c.name || "N/A");
     }
-    // If backend returns id (number)
     if (c && (typeof c === "number" || /^\d+$/.test(String(c)))) {
       const idNum = Number(c);
       const found = customers.find((cust) => Number(cust.id) === idNum);
@@ -136,7 +130,6 @@ const InvoiceManager = () => {
       if (v) {
         const d = new Date(v);
         if (!isNaN(d.getTime())) return d.toLocaleDateString();
-        // Try ISO partials
         try {
           const parsed = new Date(String(v));
           if (!isNaN(parsed.getTime())) return parsed.toLocaleDateString();
@@ -207,7 +200,7 @@ const InvoiceManager = () => {
 
     const payload = {
       customer: parseInt(selectedCustomerId),
-      user: 1, // adjust if you have user context
+      user: 1,
       total_amount: parseFloat(totalAmount.toFixed(2)),
       is_paid: false,
       status: "pending",
@@ -222,21 +215,16 @@ const InvoiceManager = () => {
 
     setIsLoading(true);
     try {
-      // POST to /sales/ (backend expected this)
       const response = await axios.post(`${API_BASE_URL}/sales/`, payload, { headers: authHeaders });
       const newInvoice = response.data;
 
-      // If backend returns nothing (204), refetch; otherwise prepend returned invoice
       if (!newInvoice || Object.keys(newInvoice).length === 0) {
-        // fallback: refetch full list
         await fetchAllData();
       } else {
         setInvoices(prev => [newInvoice, ...prev]);
       }
 
       alert("Invoice created successfully!");
-
-      // Reset form
       setIsCreateInvoiceDialogOpen(false);
       setSelectedCustomerId("");
       setDueDate("");
@@ -260,7 +248,6 @@ const InvoiceManager = () => {
 
     setIsLoading(true);
     try {
-      // Try the most likely detail endpoint
       const endpointsToTry = [
         `${API_BASE_URL}/sales/${id}/`,
         `${API_BASE_URL}/invoices/${id}/`,
@@ -273,12 +260,10 @@ const InvoiceManager = () => {
           fetched = res.data;
           break;
         } catch (err) {
-          // ignore and try next
         }
       }
 
       if (!fetched) {
-        // As a fallback, show the invoice object we already have
         setViewInvoice(invoice);
       } else {
         setViewInvoice(fetched);
@@ -312,7 +297,6 @@ const InvoiceManager = () => {
 
     setIsLoading(true);
     try {
-      // Try a few endpoint patterns that backends commonly use for download/PDF
       const endpointsToTry = [
         `${API_BASE_URL}/sales/${id}/download/`,
         `${API_BASE_URL}/invoices/${id}/download/`,
@@ -324,14 +308,12 @@ const InvoiceManager = () => {
       for (const url of endpointsToTry) {
         try {
           const res = await axios.get(url, { headers: authHeaders, responseType: "blob" });
-          // If the response is JSON (error), skip
           if (res.data instanceof Blob) {
             downloadBlob(res.data, `invoice_${getInvoiceIdValue(invoice)}.pdf`);
             downloaded = true;
             break;
           }
         } catch (err: any) {
-          // try next
         }
       }
 
@@ -359,7 +341,6 @@ const InvoiceManager = () => {
 
     setIsLoading(true);
     try {
-      // Try typical delete endpoints
       const endpointsToTry = [
         `${API_BASE_URL}/sales/${id}/`,
         `${API_BASE_URL}/invoices/${id}/`,
@@ -374,16 +355,13 @@ const InvoiceManager = () => {
             break;
           }
         } catch (err: any) {
-          // try next
         }
       }
 
       if (success) {
-        // Remove from local state
         setInvoices(prev => prev.filter(inv => getInvoiceIdValue(inv) !== getInvoiceIdValue(invoice)));
         alert("Invoice deleted successfully.");
       } else {
-        // Fallback: refetch full list
         await fetchAllData();
         alert("Invoice deleted (refetched list).");
       }
@@ -401,11 +379,11 @@ const InvoiceManager = () => {
     switch (status.toLowerCase()) {
       case 'paid':
       case 'completed':
-        return <CheckCircle className="w-4 h-4 text-green-600" />;
+        return <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-green-600" />;
       case 'pending':
-        return <Clock className="w-4 h-4 text-yellow-600" />;
+        return <Clock className="w-4 h-4 sm:w-5 sm:h-5 text-yellow-600" />;
       case 'overdue':
-        return <AlertCircle className="w-4 h-4 text-red-600" />;
+        return <AlertCircle className="w-4 h-4 sm:w-5 sm:h-5 text-red-600" />;
       default:
         return null;
     }
@@ -434,30 +412,33 @@ const InvoiceManager = () => {
   const overdueAmount = overdueInvoices.reduce((sum, inv) => sum + parseFloat(String(inv.total_amount || '0')), 0);
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="space-y-6 p-4 sm:p-6 lg:p-8 bg-gray-50 min-h-screen max-w-7xl mx-auto">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-bold">Invoice Management</h2>
-          <p className="text-muted-foreground">Create and manage customer invoices</p>
+          <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-800 flex items-center gap-2">
+            <FileText className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600" />
+            Invoice Management
+          </h2>
+          <p className="text-sm sm:text-base text-muted-foreground">Create and manage customer invoices</p>
         </div>
         <Dialog open={isCreateInvoiceDialogOpen} onOpenChange={setIsCreateInvoiceDialogOpen}>
           <DialogTrigger asChild>
-            <Button disabled={isLoading}>
-              <FileText className="w-4 h-4 mr-2" />
+            <Button disabled={isLoading} className="w-full sm:w-auto flex items-center gap-2">
+              <FileText className="w-4 h-4 sm:w-5 sm:h-5" />
               Create Invoice
             </Button>
           </DialogTrigger>
-          <DialogContent className="sm:max-w-[700px]">
+          <DialogContent className="w-full max-w-[90vw] sm:max-w-[700px]">
             <DialogHeader>
-              <DialogTitle>Create New Invoice</DialogTitle>
-              <DialogDescription>
+              <DialogTitle className="text-lg sm:text-xl">Create New Invoice</DialogTitle>
+              <DialogDescription className="text-sm sm:text-base">
                 Generate a professional invoice for your customer.
               </DialogDescription>
             </DialogHeader>
             <div className="grid gap-4 py-4">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="customer">Customer *</Label>
+                  <Label htmlFor="customer" className="text-sm sm:text-base">Customer *</Label>
                   <Select value={selectedCustomerId} onValueChange={setSelectedCustomerId}>
                     <SelectTrigger>
                       <SelectValue placeholder="Select customer" />
@@ -472,19 +453,20 @@ const InvoiceManager = () => {
                   </Select>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="dueDate">Due Date</Label>
+                  <Label htmlFor="dueDate" className="text-sm sm:text-base">Due Date</Label>
                   <Input
                     type="date"
                     value={dueDate}
                     onChange={(e) => setDueDate(e.target.value)}
+                    className="text-sm sm:text-base"
                   />
                 </div>
               </div>
 
               <div className="space-y-4">
-                <Label>Invoice Items *</Label>
+                <Label className="text-sm sm:text-base">Invoice Items *</Label>
                 <div className="border rounded-lg p-4 space-y-3">
-                  <div className="grid grid-cols-12 gap-2 text-sm font-medium">
+                  <div className="grid grid-cols-12 gap-2 text-xs sm:text-sm font-medium">
                     <span className="col-span-5">Product</span>
                     <span className="col-span-2 text-center">Quantity</span>
                     <span className="col-span-2 text-right">Price</span>
@@ -515,19 +497,19 @@ const InvoiceManager = () => {
                           </Select>
                         </div>
                         <Input
-                          className="col-span-2 text-center"
+                          className="col-span-2 text-center text-xs sm:text-sm"
                           type="number"
                           min="1"
                           value={item.quantity || 1}
                           onChange={(e) => handleQuantityChange(index, e.target.value)}
                         />
                         <Input
-                          className="col-span-2 text-right"
+                          className="col-span-2 text-right text-xs sm:text-sm"
                           value={(item.price || 0).toFixed(2)}
                           readOnly
                         />
                         <Input
-                          className="col-span-2 text-right"
+                          className="col-span-2 text-right text-xs sm:text-sm"
                           value={itemTotal.toFixed(2)}
                           readOnly
                         />
@@ -538,35 +520,37 @@ const InvoiceManager = () => {
                           onClick={() => removeInvoiceItem(index)}
                           disabled={invoiceItems.length === 1}
                         >
-                          <Trash2 className="w-4 h-4" />
+                          <Trash2 className="w-4 h-4 sm:w-5 sm:h-5" />
                         </Button>
                       </div>
                     );
                   })}
 
-                  <Button variant="outline" size="sm" onClick={addInvoiceItem}>
-                    <Plus className="w-4 h-4 mr-2" />
+                  <Button variant="outline" size="sm" onClick={addInvoiceItem} className="w-full sm:w-auto">
+                    <Plus className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
                     Add Item
                   </Button>
                 </div>
               </div>
 
               <div className="flex justify-end items-center gap-2 pt-4 border-t">
-                <span className="text-lg font-semibold">Total:</span>
-                <span className="text-2xl font-bold">৳{calculateTotal().toFixed(2)}</span>
+                <span className="text-base sm:text-lg font-semibold">Total:</span>
+                <span className="text-lg sm:text-xl font-bold">৳{calculateTotal().toFixed(2)}</span>
               </div>
             </div>
-            <DialogFooter>
+            <DialogFooter className="flex flex-col sm:flex-row gap-2">
               <Button
                 variant="outline"
                 onClick={() => setIsCreateInvoiceDialogOpen(false)}
                 disabled={isLoading}
+                className="w-full sm:w-auto"
               >
                 Cancel
               </Button>
               <Button
                 onClick={handleCreateInvoice}
                 disabled={isLoading}
+                className="w-full sm:w-auto"
               >
                 {isLoading ? "Creating..." : "Create Invoice"}
               </Button>
@@ -576,44 +560,44 @@ const InvoiceManager = () => {
       </div>
 
       {/* Invoice Stats */}
-      <div className="grid gap-4 md:grid-cols-4">
-        <Card>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <Card className="bg-white shadow">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium">Total Invoices</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{invoices.length}</div>
+            <div className="text-xl sm:text-2xl font-bold">{invoices.length}</div>
             <p className="text-xs text-muted-foreground">All time</p>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="bg-white shadow">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium">Paid Invoices</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-green-600">{paidInvoices.length}</div>
+            <div className="text-xl sm:text-2xl font-bold text-green-600">{paidInvoices.length}</div>
             <p className="text-xs text-muted-foreground">
               Collection rate: {invoices.length ? ((paidInvoices.length / invoices.length) * 100).toFixed(0) : 0}%
             </p>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="bg-white shadow">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium">Pending Amount</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-yellow-600">
+            <div className="text-xl sm:text-2xl font-bold text-yellow-600">
               ৳{pendingAmount.toLocaleString()}
             </div>
             <p className="text-xs text-muted-foreground">Awaiting payment</p>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="bg-white shadow">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium">Overdue Amount</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-red-600">
+            <div className="text-xl sm:text-2xl font-bold text-red-600">
               ৳{overdueAmount.toLocaleString()}
             </div>
             <p className="text-xs text-muted-foreground">Needs attention</p>
@@ -622,106 +606,108 @@ const InvoiceManager = () => {
       </div>
 
       {/* Invoice List */}
-      <Card>
+      <Card className="bg-white shadow">
         <CardHeader>
-          <CardTitle>Invoice List</CardTitle>
-          <CardDescription>Manage all customer invoices</CardDescription>
-          <div className="flex gap-2">
+          <CardTitle className="text-lg sm:text-xl">Invoice List</CardTitle>
+          <CardDescription className="text-sm sm:text-base">Manage all customer invoices</CardDescription>
+          <div className="flex flex-col sm:flex-row gap-2 pt-2">
             <div className="relative flex-1">
-              <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input placeholder="Search invoices..." className="pl-8" />
+              <Search className="absolute left-2 top-2.5 h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground" />
+              <Input placeholder="Search invoices..." className="pl-8 text-sm sm:text-base" />
             </div>
-            <Button variant="outline" size="sm">
-              <Filter className="w-4 h-4 mr-2" />
+            <Button variant="outline" size="sm" className="w-full sm:w-auto">
+              <Filter className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
               Filter
             </Button>
-            <Button variant="outline" size="sm" onClick={() => { /* implement export action if needed */ }}>
-              <Download className="w-4 h-4 mr-2" />
+            <Button variant="outline" size="sm" className="w-full sm:w-auto" onClick={() => { /* implement export action if needed */ }}>
+              <Download className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
               Export
             </Button>
           </div>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Invoice ID</TableHead>
-                <TableHead>Customer</TableHead>
-                <TableHead>Date</TableHead>
-                <TableHead>Due Date</TableHead>
-                <TableHead>Amount</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {invoices.length === 0 ? (
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center text-muted-foreground">
-                    {isLoading ? "Loading..." : "No invoices found"}
-                  </TableCell>
+                  <TableHead className="text-xs sm:text-sm">Invoice ID</TableHead>
+                  <TableHead className="text-xs sm:text-sm">Customer</TableHead>
+                  <TableHead className="text-xs sm:text-sm">Date</TableHead>
+                  <TableHead className="text-xs sm:text-sm">Due Date</TableHead>
+                  <TableHead className="text-xs sm:text-sm">Amount</TableHead>
+                  <TableHead className="text-xs sm:text-sm">Status</TableHead>
+                  <TableHead className="text-xs sm:text-sm text-right">Actions</TableHead>
                 </TableRow>
-              ) : (
-                invoices.map((invoice, idx) => (
-                  <TableRow key={invoice.id ?? invoice.invoice_number ?? idx}>
-                    <TableCell className="font-medium">{getInvoiceIdValue(invoice)}</TableCell>
-                    <TableCell>{getCustomerName(invoice)}</TableCell>
-                    <TableCell>{formatDateSafe(invoice, ["invoice_date", "date", "created_at"])}</TableCell>
-                    <TableCell>{formatDateSafe(invoice, ["due_date"])}</TableCell>
-                    <TableCell>৳{parseFloat(String(invoice.total_amount || '0')).toLocaleString()}</TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        {getStatusIcon(invoice.status)}
-                        <Badge variant={getStatusColor(invoice.status) as any}>
-                          {invoice.status || "unknown"}
-                        </Badge>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex gap-1">
-                        <Button size="sm" variant="outline" onClick={() => handleViewInvoice(invoice)}>
-                          <Eye className="w-3 h-3" />
-                        </Button>
-                        <Button size="sm" variant="outline" onClick={() => handleDownloadInvoice(invoice)}>
-                          <Download className="w-3 h-3" />
-                        </Button>
-                        <Button size="sm" variant="destructive" onClick={() => handleDeleteInvoice(invoice)}>
-                          <Trash2 className="w-3 h-3" />
-                        </Button>
-                      </div>
+              </TableHeader>
+              <TableBody>
+                {invoices.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={7} className="text-center text-xs sm:text-sm text-muted-foreground">
+                      {isLoading ? "Loading..." : "No invoices found"}
                     </TableCell>
                   </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
+                ) : (
+                  invoices.map((invoice, idx) => (
+                    <TableRow key={invoice.id ?? invoice.invoice_number ?? idx}>
+                      <TableCell className="font-medium text-xs sm:text-sm">{getInvoiceIdValue(invoice)}</TableCell>
+                      <TableCell className="text-xs sm:text-sm">{getCustomerName(invoice)}</TableCell>
+                      <TableCell className="text-xs sm:text-sm">{formatDateSafe(invoice, ["invoice_date", "date", "created_at"])}</TableCell>
+                      <TableCell className="text-xs sm:text-sm">{formatDateSafe(invoice, ["due_date"])}</TableCell>
+                      <TableCell className="text-xs sm:text-sm">৳{parseFloat(String(invoice.total_amount || '0')).toLocaleString()}</TableCell>
+                      <TableCell className="text-xs sm:text-sm">
+                        <div className="flex items-center gap-2">
+                          {getStatusIcon(invoice.status)}
+                          <Badge variant={getStatusColor(invoice.status) as any}>
+                            {invoice.status || "unknown"}
+                          </Badge>
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex gap-1 justify-end">
+                          <Button size="icon" variant="outline" onClick={() => handleViewInvoice(invoice)}>
+                            <Eye className="w-3 h-3 sm:w-4 sm:h-4" />
+                          </Button>
+                          <Button size="icon" variant="outline" onClick={() => handleDownloadInvoice(invoice)}>
+                            <Download className="w-3 h-3 sm:w-4 sm:h-4" />
+                          </Button>
+                          <Button size="icon" variant="destructive" onClick={() => handleDeleteInvoice(invoice)}>
+                            <Trash2 className="w-3 h-3 sm:w-4 sm:h-4" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </div>
         </CardContent>
       </Card>
 
       {/* View invoice dialog */}
       <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
-        <DialogContent>
+        <DialogContent className="w-full max-w-[90vw] sm:max-w-[500px]">
           <DialogHeader>
-            <DialogTitle>Invoice Details</DialogTitle>
-            <DialogDescription>Details from server (if available)</DialogDescription>
+            <DialogTitle className="text-lg sm:text-xl">Invoice Details</DialogTitle>
+            <DialogDescription className="text-sm sm:text-base">Details from server (if available)</DialogDescription>
           </DialogHeader>
           <div className="py-4">
             {viewInvoice ? (
-              <div className="space-y-2 text-sm">
+              <div className="space-y-2 text-sm sm:text-base">
                 <div><strong>ID:</strong> {getInvoiceIdValue(viewInvoice)}</div>
                 <div><strong>Customer:</strong> {getCustomerName(viewInvoice)}</div>
                 <div><strong>Date:</strong> {formatDateSafe(viewInvoice)}</div>
                 <div><strong>Due Date:</strong> {formatDateSafe(viewInvoice, ["due_date"])}</div>
                 <div><strong>Amount:</strong> ৳{parseFloat(String(viewInvoice.total_amount || '0')).toLocaleString()}</div>
                 <div><strong>Status:</strong> {viewInvoice.status || "N/A"}</div>
-                <pre className="bg-muted p-2 rounded text-xs overflow-auto">{JSON.stringify(viewInvoice, null, 2)}</pre>
+                <pre className="bg-muted p-2 rounded text-xs sm:text-sm overflow-auto">{JSON.stringify(viewInvoice, null, 2)}</pre>
               </div>
             ) : (
-              <div>No details available</div>
+              <div className="text-sm sm:text-base">No details available</div>
             )}
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsViewDialogOpen(false)}>Close</Button>
+            <Button variant="outline" onClick={() => setIsViewDialogOpen(false)} className="w-full sm:w-auto">Close</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
